@@ -405,7 +405,8 @@ int16_t modbusSlave::update(u16 **regs, u16 regs_size)
 	}
 
 #ifdef USE_COMUNICATION_LED
-	COMUNICATION_LED_PORT->BSRRL = COMUNICATION_LED_PIN;
+	//COMUNICATION_LED_PORT->BSRRL = COMUNICATION_LED_PIN;
+	COMUNICATION_LED_PORT->ODR ^= COMUNICATION_LED_PIN;
 #endif
 	start_addr = ((int) uart_buffer[START_H] << 8) + (int) uart_buffer[START_L];
 

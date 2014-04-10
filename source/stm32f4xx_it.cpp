@@ -3,34 +3,21 @@
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
 #include "math.h"
-
+#include "global.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
+extern global prg;
 // UART variables
 u8 uart_buffer[UART_BUFFER_SIZE]; // uart temporary buffer
 u16 uart_byte_cnt;                // uart receive byte counter
 
-//Modbus Slave Variables
-extern modbusSlave mbs_Slave;    //modbus object
-extern u16 *mbs_table[BUFF_SIZE]; //modbus IO table
-
 //Profibus slave variables
 extern u8 profibus_status;
 
-//ADC variables
-extern __IO uint16_t aADCDualConvertedValue[4];
-extern uint32_t aADCBuff[4];
-extern uint16_t aADCavr[4];
 
-u16 adcAvrCnt = 0; // Averaging count
-float rms;
-
-
-
-extern MenuItem MIN[46]; //MIN01
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -134,141 +121,52 @@ void PendSV_Handler(void)
  */
 void SysTick_Handler(void)
 {
-	static u16 arr[1000];
-	static int i = 0;
-	aADCDualConvertedValue[0] = ADC_GetConversionValue(ADC1);
-	aADCDualConvertedValue[1] = ADC_GetConversionValue(ADC2);
-	arr[i] = aADCDualConvertedValue[0];
-	i++;
-
-	if (i >= 1000)
-	{
-
-		i = 0;
-	}
-
 }
 
 void TIM4_IRQHandler(void)
 {
-	static u8 i = 0;
-	u16 avrCnt = 10; // (u16)MIN[13].getValue();
 
 	if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
 	{
-		aADCDualConvertedValue[0] = ADC_GetConversionValue(ADC1);
-		aADCDualConvertedValue[1] = ADC_GetConversionValue(ADC2);
+prg.itCalcFreq();
 
-		if (i > avrCnt)
-		{
-
-			//Calculate average adc value
-			aADCavr[0] = aADCBuff[0] / avrCnt;
-			aADCavr[1] = aADCBuff[1] / avrCnt;
-MIN[4].pValue=(float)aADCavr[0];
-MIN[5].pValue=(float)aADCavr[1];
-
-
-			//reset data
-			i = 0;
-			aADCBuff[0] = 0;
-			aADCBuff[1] = 0;
-
-			//sampling data
-			aADCBuff[0] += aADCDualConvertedValue[0];
-			aADCBuff[1] += aADCDualConvertedValue[1];
-
-			i++;
-
-		}
-		else
-		{
-			//sampling data
-			aADCBuff[0] += aADCDualConvertedValue[0];
-			aADCBuff[1] += aADCDualConvertedValue[1];
-
-			i++;
-		}
 		TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
 	}
-
-}
-
-bool DwnToUp(u16 Value)
-{
-
-	u16 ZeroOffset = (u16) MIN[15].getValue();
-	static u16 PlusHyst = 10;
-	static u16 MinusHyst = 10;
-	static u8 mCurrPos = 0; // 0 = In Minus phase, 1 = In Plus phase
-
-	if (Value > ZeroOffset + PlusHyst)
-	{
-		if (mCurrPos == 0)
-		{
-			mCurrPos = 1;
-			return true;
-		}
-		mCurrPos = 1;
-
-	}
-
-	if (Value < ZeroOffset - MinusHyst)
-	{
-		mCurrPos = 0;
-	}
-
-	return false;
 
 }
 
 void TIM2_IRQHandler(void)
 {
 
-	static u32 CntValue = 0;
-	static u32 rmsSum = 0;
-	static u16 tmp = 0;
-
-	u16 ZeroOffset = (u16) MIN[15].getValue();
-
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
 	{
 
-		if (DwnToUp(aADCavr[0]))
-		{
-			MIN[6].setValue(1 / ((float) CntValue * 0.00005));
 
-			adcAvrCnt = CntValue;
-
-			rms = sqrtf((float)rmsSum);
-			rms = rms/CntValue;
-			CntValue = 1;
-			rmsSum = 0;
-
-		}
-		else
-		{
-			CntValue++;
-
-			if (aADCavr[0] > ZeroOffset ){
-				tmp = aADCavr[0] - ZeroOffset;
-			}
-
-			if (aADCavr[0] < ZeroOffset ){
-				tmp =  ZeroOffset - aADCavr[0];
-			}
-
-
-
-
-			rmsSum += tmp*tmp;
-
-		}
+		prg.itSampleADC();
 
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 	}
 
 }
+
+
+void TIM5_IRQHandler(void)
+{
+
+	if (TIM_GetITStatus(TIM5, TIM_IT_Update) != RESET)
+	{
+
+#ifdef USE_COMUNICATION_LED
+COMUNICATION_LED_PORT->BSRRH = COMUNICATION_LED_PIN;
+
+#endif
+
+
+		TIM_ClearITPendingBit(TIM5, TIM_IT_Update);
+	}
+
+}
+
 
 /**
  * Modbus/Profibus timer
@@ -282,7 +180,7 @@ void TIM3_IRQHandler(void)
 		{
 			if (uart_byte_cnt > 0)
 			{
-				mbs_Slave.update(mbs_table, BUFF_SIZE);
+				prg.mbs_Slave.update(prg.mbs_table, BUFF_SIZE);
 				uart_byte_cnt = 0;
 
 			}
@@ -335,9 +233,7 @@ void TIM3_IRQHandler(void)
 
 		}
 
-#ifdef USE_COMUNICATION_LED
-		COMUNICATION_LED_PORT->BSRRH = COMUNICATION_LED_PIN;
-#endif
+
 
 		TIM_ClearITPendingBit(PROFIBUS_TIMER, TIM_IT_Update);
 	}
