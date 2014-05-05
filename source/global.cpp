@@ -30,7 +30,7 @@ void global::init(void)
 	initModbusUsart();
 	mbs_Slave.configureAddress(10);
 
-	//    initProfibusTimer();
+	//  initProfibusTimer();
 	//	initProfibusUsart();
 	//	initProfibus();
 
@@ -55,24 +55,23 @@ void global::init(void)
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
-
-	TimeBaseInit_Structure.TIM_Prescaler = 83;
-	TimeBaseInit_Structure.TIM_Period = 4; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
-	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
-	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(TIM4, &TimeBaseInit_Structure);
-	TIM_Cmd(TIM4, ENABLE);
-	TIM_ARRPreloadConfig(TIM4, ENABLE);
-
-	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
-
-	NVIC_Init_Structure.NVIC_IRQChannel = TIM4_IRQn;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 2;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_Init_Structure);
-
+//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+//
+//	TimeBaseInit_Structure.TIM_Prescaler = 83;
+//	TimeBaseInit_Structure.TIM_Period = 4; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+//	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
+//	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
+//	TIM_TimeBaseInit(TIM4, &TimeBaseInit_Structure);
+//	TIM_Cmd(TIM4, ENABLE);
+//	TIM_ARRPreloadConfig(TIM4, ENABLE);
+//
+//	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+//
+//	NVIC_Init_Structure.NVIC_IRQChannel = TIM4_IRQn;
+//	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 14;
+//	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+//	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_Init_Structure);
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
 
@@ -92,6 +91,8 @@ void global::init(void)
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
+	//SysTick_Config(SYSTICK_VALUE);
+
 }
 
 void global::cycle(void)
@@ -110,6 +111,9 @@ void global::cycle(void)
 		//time += (float) tr.RTC_Minutes;
 
 		//MIN[1].setValue(time);
+
+		MIN[4].pValue = (float) ADC1->DR;
+		MIN[5].pValue = (float) ADC2->DR;
 
 		Menu.setDefaultValue(SYS[6].getValue());
 		Menu.selectGroup(SYS[1].getValue());
@@ -315,12 +319,11 @@ void global::usrMenuBuild(void)
 
 bool global::DwnToUp(u16 Value)
 {
-
-	u16 ZeroOffset = (u16) MIN[15].getValue();
-	static u16 PlusHyst = 10;
-	static u16 MinusHyst = 10;
+	static u16 PlusHyst = 15;
+	static u16 MinusHyst = 15;
 	static u8 mCurrPos = 0; // 0 = In Minus phase, 1 = In Plus phase
 
+	u16 ZeroOffset = (u16) MIN[15].getValue();
 	if (Value > ZeroOffset + PlusHyst)
 	{
 		if (mCurrPos == 0)
@@ -345,28 +348,28 @@ void global::itSampleADC(void)
 {
 
 	static u8 i = 0;
-	u16 avrCnt = 10; // (u16)MIN[13].getValue();
+	const u16 avrCnt = 1; // (u16)MIN[13].getValue();
 	GPIOC->ODR ^= GPIO_Pin_1;
-	aADCDualConvertedValue[0] = (ADC_GetConversionValue(ADC1)>>4);
-	aADCDualConvertedValue[1] = (ADC_GetConversionValue(ADC2)>>4);
+	aADCDualConvertedValue[0] = (ADC1->DR);
+	aADCDualConvertedValue[1] = (ADC2->DR);
 
-	if (i > avrCnt)
+	if (i >= avrCnt)
 	{
 
 		//Calculate average adc value
-		aADCavr[0] = aADCBuff[0] / avrCnt;
-		aADCavr[1] = aADCBuff[1] / avrCnt;
+		aADCavr[0] = (aADCBuff[0] / avrCnt);
+		aADCavr[1] = (aADCBuff[1] / avrCnt);
 		MIN[4].pValue = (float) aADCavr[0];
 		MIN[5].pValue = (float) aADCavr[1];
 
 		//reset data
-		i = 0;
+		i = 1;
 		aADCBuff[0] = 0;
 		aADCBuff[1] = 0;
 
 		//sampling data
-		aADCBuff[0] += aADCDualConvertedValue[0];
-		aADCBuff[1] += aADCDualConvertedValue[1];
+		aADCBuff[0] += ADC1->DR;
+		aADCBuff[1] += ADC2->DR;
 
 		i++;
 
@@ -374,8 +377,8 @@ void global::itSampleADC(void)
 	else
 	{
 		//sampling data
-		aADCBuff[0] += aADCDualConvertedValue[0];
-		aADCBuff[1] += aADCDualConvertedValue[1];
+		aADCBuff[0] += ADC1->DR;
+		aADCBuff[1] += ADC2->DR;
 
 		i++;
 	}
@@ -388,18 +391,30 @@ void global::itCalcFreq(void)
 	static u32 CntValue = 0;
 	static u32 rmsSum = 0;
 	static u16 tmp = 0;
-
+	static float avrFr = 0.0;
+static u8 i =0;
 	u16 ZeroOffset = (u16) MIN[15].getValue();
+
 	GPIOC->ODR ^= GPIO_Pin_2;
-	if (DwnToUp(aADCavr[0]))
+	if (DwnToUp(ADC1->DR))
 	{
-		MIN[6].setValue(1 / ((float) CntValue * 0.00005));
+		//Усреднение текущей частоты
+		if (i > 4)
+		{
+			MIN[6].setValue(avrFr / 5);
+			avrFr = 0.0;
+			i = 0;
+		}
+		//Расчет частоты
+		avrFr = avrFr + (1 / ((float) CntValue * 0.00005));
+		i++;
 
-		adcAvrCnt = CntValue;
-
+		//Расчет рмс
 		rms = sqrtf((float) rmsSum);
-		rms = rms / CntValue;
-		CntValue = 1;
+		rms = rms / (float)CntValue;
+
+		MIN[3].setValue(rms);
+		CntValue = 0;
 		rmsSum = 0;
 
 	}
@@ -407,14 +422,14 @@ void global::itCalcFreq(void)
 	{
 		CntValue++;
 
-		if (aADCavr[0] > ZeroOffset)
+		if (ADC1->DR >= ZeroOffset)
 		{
-			tmp = aADCavr[0] - ZeroOffset;
+			tmp = ADC1->DR - ZeroOffset;
 		}
 
-		if (aADCavr[0] < ZeroOffset)
+		if (ADC1->DR < ZeroOffset)
 		{
-			tmp = ZeroOffset - aADCavr[0];
+			tmp = ZeroOffset - ADC1->DR ;
 		}
 
 		rmsSum += tmp * tmp;
@@ -431,7 +446,6 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 
 	ADC_InitTypeDef ADC_InitStructure;    // ADC
 	ADC_CommonInitTypeDef ADC_CommonInitStruct; // ADC
-
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); // GPIO_A
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE); // GPIO_B
@@ -492,7 +506,6 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 
 	SevenSeg->GpioIOConfig();
 
-
 #ifdef USE_COMUNICATION_LED
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -503,7 +516,6 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	GPIO_Init(COMUNICATION_LED_PORT, &GPIO_InitStructure);
 #endif
 
-
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
@@ -511,7 +523,6 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
-
 
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -544,9 +555,7 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	ADC_InitStructure.ADC_NbrOfConversion = 1;
 	ADC_Init(ADC1, &ADC_InitStructure);
 
-
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_3Cycles);
-
 
 	//ADC2
 	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
@@ -558,15 +567,11 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	ADC_InitStructure.ADC_NbrOfConversion = 1;
 	ADC_Init(ADC2, &ADC_InitStructure);
 
-
 	ADC_RegularChannelConfig(ADC2, ADC_Channel_7, 1, ADC_SampleTime_3Cycles);
-
 
 	ADC_Cmd(ADC1, ENABLE);
 	ADC_Cmd(ADC2, ENABLE);
 	ADC_SoftwareStartConv(ADC1);
 
 }
-
-
 

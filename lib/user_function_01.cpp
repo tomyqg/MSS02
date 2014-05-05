@@ -72,7 +72,7 @@ void initModbusUsart(void)
 	USART_ITConfig(MODBUS_USART, USART_IT_RXNE, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_USART_IRQN;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 15;
 	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
@@ -110,7 +110,7 @@ void initModbusTimer(void)
 	TIM_ITConfig(MODBUS_TIMER, TIM_IT_Update, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_TIMER_IRQN;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 2;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 16;
 	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);

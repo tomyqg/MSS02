@@ -162,6 +162,7 @@ void IO_7segment::write(float value)
 	float x;
 	s16 icel;
 
+	//Индикатор знак минус
 	if (value < 0)
 	{
 		GpioIO.SG.Port->BSRRL = GpioIO.SG.Pin;

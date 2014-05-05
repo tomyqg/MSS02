@@ -25,6 +25,16 @@ public:
 	bool DwnToUp(u16 Value);
 	void gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash);
 
+
+
+
+
+
+
+
+
+
+
 	MenuManager Menu;
 	MenuItem RT[2]; //IO item
 	MenuItem SYS[8]; //System item
