@@ -471,7 +471,7 @@ void MenuManager::Display()
 	if (!m_EditMode)
 	{
 
-			m_pMenuLCD->write(pSymbol, pNumber);
+		m_pMenuLCD->write(pSymbol, pNumber);
 	}
 	else
 	{
@@ -558,3 +558,27 @@ void MenuManager::selectItemNum(void)
 
 }
 
+void MenuManager::changeItem(MenuItem &Trg, MenuItem &Dst, MenuItem Src)
+{
+
+	if (Trg.getValue())
+	{
+
+		Dst.pValue = Src.pValue;
+
+		Trg.setValue(0.0);
+		Flash.writeFloat(Trg.getAddr(), pValue);
+		Flash.writeFloat(Dst.getAddr(), pValue);
+
+	}
+}
+void MenuManager::changeItem(MenuItem &Dst, MenuItem Src)
+{
+
+	if (Dst.getValue() == 0.0)
+	{
+		Dst.pValue = Src.pValue;
+		Flash.writeFloat(Dst.getAddr(), pValue);
+	}
+
+}

@@ -33,7 +33,7 @@ public:
 
 
 
-
+u16 SignalOk[2];
 
 	MenuManager Menu;
 	MenuItem RT[2]; //IO item
@@ -46,7 +46,7 @@ public:
 	modbusSlave mbs_Slave; //object mbSlave
 	u16 *mbs_table[BUFF_SIZE]; //modbus table
 
-	__IO uint16_t aADCDualConvertedValue[4]; //
+	u16 ZeroOffset=0;
 	uint16_t aADCavr[4];
 	uint32_t aADCBuff[4];
 	u16 adcAvrCnt = 0; // Averaging count

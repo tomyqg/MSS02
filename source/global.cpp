@@ -37,41 +37,41 @@ void global::init(void)
 	NVIC_InitTypeDef NVIC_Init_Structure;
 	TIM_TimeBaseInitTypeDef TimeBaseInit_Structure;
 
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-
-	TimeBaseInit_Structure.TIM_Prescaler = 83;
-	TimeBaseInit_Structure.TIM_Period = 49; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
-	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
-	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(TIM2, &TimeBaseInit_Structure);
-	TIM_Cmd(TIM2, ENABLE);
-	TIM_ARRPreloadConfig(TIM2, ENABLE);
-
-	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-
-	NVIC_Init_Structure.NVIC_IRQChannel = TIM2_IRQn;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_Init_Structure);
-
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
 //
 //	TimeBaseInit_Structure.TIM_Prescaler = 83;
-//	TimeBaseInit_Structure.TIM_Period = 4; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+//	TimeBaseInit_Structure.TIM_Period = 49; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
 //	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
 //	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
-//	TIM_TimeBaseInit(TIM4, &TimeBaseInit_Structure);
-//	TIM_Cmd(TIM4, ENABLE);
-//	TIM_ARRPreloadConfig(TIM4, ENABLE);
+//	TIM_TimeBaseInit(TIM2, &TimeBaseInit_Structure);
+//	TIM_Cmd(TIM2, ENABLE);
+//	TIM_ARRPreloadConfig(TIM2, ENABLE);
 //
-//	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+//	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 //
-//	NVIC_Init_Structure.NVIC_IRQChannel = TIM4_IRQn;
-//	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 14;
+//	NVIC_Init_Structure.NVIC_IRQChannel = TIM2_IRQn;
+//	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
 //	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
 //	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 //	NVIC_Init(&NVIC_Init_Structure);
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+
+	TimeBaseInit_Structure.TIM_Prescaler = 83;
+	TimeBaseInit_Structure.TIM_Period = 4; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM4, &TimeBaseInit_Structure);
+	TIM_Cmd(TIM4, ENABLE);
+	TIM_ARRPreloadConfig(TIM4, ENABLE);
+
+	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+
+	NVIC_Init_Structure.NVIC_IRQChannel = TIM4_IRQn;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 14;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_Init_Structure);
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
 
@@ -112,9 +112,9 @@ void global::cycle(void)
 
 		//MIN[1].setValue(time);
 
-		MIN[4].pValue = (float) ADC1->DR;
-		MIN[5].pValue = (float) ADC2->DR;
-
+		//MIN[4].pValue = (float) ADC1->DR;
+		//	MIN[5].pValue = (float) ADC2->DR;
+		Menu.changeItem(MIN[15], MIN[4]);
 		Menu.setDefaultValue(SYS[6].getValue());
 		Menu.selectGroup(SYS[1].getValue());
 		Menu.Up(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1));
@@ -328,6 +328,8 @@ bool global::DwnToUp(u16 Value)
 	{
 		if (mCurrPos == 0)
 		{
+			GPIOC->ODR ^= GPIO_Pin_2;
+
 			mCurrPos = 1;
 			return true;
 		}
@@ -346,37 +348,39 @@ bool global::DwnToUp(u16 Value)
 
 void global::itSampleADC(void)
 {
+	static const u16 avrCnt = 50; //Max count average
+	static u8 i = 0; //Inc
 
-	static u8 i = 0;
-	const u16 avrCnt = 1; // (u16)MIN[13].getValue();
-	GPIOC->ODR ^= GPIO_Pin_1;
-	aADCDualConvertedValue[0] = (ADC1->DR);
-	aADCDualConvertedValue[1] = (ADC2->DR);
-
+	//Calculate
 	if (i >= avrCnt)
 	{
-
 		//Calculate average adc value
 		aADCavr[0] = (aADCBuff[0] / avrCnt);
 		aADCavr[1] = (aADCBuff[1] / avrCnt);
+
+		//Send value to menu items
 		MIN[4].pValue = (float) aADCavr[0];
 		MIN[5].pValue = (float) aADCavr[1];
 
-		//reset data
+		if (ADC1->DR > ZeroOffset+250 || ADC1->DR < ZeroOffset-250 )
+		{
+			if (SignalOk[0] < 15000)
+			{
+				SignalOk[0]+=100;
+			}
+		}
+
+		//Reset data
 		i = 1;
 		aADCBuff[0] = 0;
 		aADCBuff[1] = 0;
 
-		//sampling data
+		//Sampling data
 		aADCBuff[0] += ADC1->DR;
 		aADCBuff[1] += ADC2->DR;
-
-		i++;
-
 	}
-	else
+	else //Sampling data
 	{
-		//sampling data
 		aADCBuff[0] += ADC1->DR;
 		aADCBuff[1] += ADC2->DR;
 
@@ -392,50 +396,62 @@ void global::itCalcFreq(void)
 	static u32 rmsSum = 0;
 	static u16 tmp = 0;
 	static float avrFr = 0.0;
-static u8 i =0;
-	u16 ZeroOffset = (u16) MIN[15].getValue();
+	static u8 i = 0;
 
-	GPIOC->ODR ^= GPIO_Pin_2;
-	if (DwnToUp(ADC1->DR))
+	 ZeroOffset = (u16) MIN[15].getValue();
+
+	if (SignalOk[0]>0)
 	{
-		//Усреднение текущей частоты
-		if (i > 4)
+
+		if (DwnToUp(aADCavr[0]))
 		{
-			MIN[6].setValue(avrFr / 5);
-			avrFr = 0.0;
-			i = 0;
+
+			//Усреднение текущей частоты
+			if (i >= 10) //
+			{
+				MIN[6].setValue(avrFr / 10);
+				avrFr = 0.0;
+				i = 0;
+			}
+
+			//Расчет частоты
+			avrFr = avrFr + (1 / ((float) CntValue * 0.0000051));
+			i++;
+
+			//Расчет рмс
+			rms = sqrtf((float) rmsSum);
+			rms = rms / (float) CntValue;
+			MIN[3].setValue(CntValue);
+			CntValue = 0;
+			rmsSum = 0;
+
+			SignalOk[0] = false;
+
 		}
-		//Расчет частоты
-		avrFr = avrFr + (1 / ((float) CntValue * 0.00005));
-		i++;
+		else
+		{
+			CntValue++;
 
-		//Расчет рмс
-		rms = sqrtf((float) rmsSum);
-		rms = rms / (float)CntValue;
+			if (aADCavr[0] >= ZeroOffset)
+			{
+				tmp = aADCavr[0] - ZeroOffset;
+			}
 
-		MIN[3].setValue(rms);
-		CntValue = 0;
-		rmsSum = 0;
+			if (aADCavr[0] < ZeroOffset)
+			{
+				tmp = ZeroOffset - aADCavr[0];
+			}
 
+			rmsSum += tmp * tmp;
+
+		}
+
+		SignalOk[0]--;
 	}
 	else
 	{
-		CntValue++;
-
-		if (ADC1->DR >= ZeroOffset)
-		{
-			tmp = ADC1->DR - ZeroOffset;
-		}
-
-		if (ADC1->DR < ZeroOffset)
-		{
-			tmp = ZeroOffset - ADC1->DR ;
-		}
-
-		rmsSum += tmp * tmp;
-
+		MIN[6].setValue(0.0);
 	}
-
 }
 
 void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)

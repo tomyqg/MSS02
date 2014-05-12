@@ -66,6 +66,8 @@ public:
 	void TimerReset(bool input);
 	float getPointFactor(float value);
 
+	void changeItem(MenuItem &Trg , MenuItem &Dst, MenuItem Src);
+	void changeItem(MenuItem &Dst, MenuItem Src);
 	IO_7segment* m_pMenuLCD;        //Output driver pointer
 	eeprom Flash;
 
