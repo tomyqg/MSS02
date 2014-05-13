@@ -194,7 +194,7 @@ void IO_7segment::write(float value)
 		point[3] = true;
 		x = 1000;
 	}
-	value *= x;
+	value *= x;//change it
 
 	icel = (s16) (value);
 
