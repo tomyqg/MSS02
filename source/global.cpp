@@ -425,8 +425,6 @@ void global::itCalcFreq(void)
 			CntValue = 0;
 			rmsSum = 0;
 
-			SignalOk[0] = false;
-
 		}
 		else
 		{
