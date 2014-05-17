@@ -16,7 +16,6 @@
 enum{
 	T_ON,
 	T_OFF,
-	T_PULSE
 };
 
 //SYSTICK_VALUE
@@ -40,10 +39,7 @@ private:
 	bool out; //output signal
 	u8 type; //0=ton, 1=tof, 2=pulse
 	u32 cmpVal; //setpoint value
-	u32 counter;//internak counter
-
-
-
+	u32 counter;//internal counter
 	bool p;     //one cycle detection
 };
 

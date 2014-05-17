@@ -6,6 +6,7 @@
 
 
 
+
 /*Structure of menu:            Used method:
 				   RootItem     //Up/Increase
 					  |         //Down/Decrease
@@ -45,7 +46,7 @@ public:
 	void addItem(u8 SubMenuNumber, MenuItem * p_menuItem);
 	void addRoot(u8 SubMenuNumber, MenuItem * p_menuItem);
 	void addLast(u8 SubMenuNumber, MenuItem * p_menuItem);
-	void selectItemNum();
+	void selectItemNum(u8 group);
 	void selectRoot();
 
 	void selectGroup(u8 SubMenuNumber);
@@ -95,6 +96,6 @@ private:
 
 	u32 scrollCounter[3];           //counter for scroll data
 	float m_Speed = 0;              //Scroll speed
-
+int currGroup; //selected group (board)
 };
 #endif // MENUMANAGE_H

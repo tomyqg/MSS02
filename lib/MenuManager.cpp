@@ -88,6 +88,7 @@ void MenuManager::selectGroup(u8 GroupNumber)
 		group0Last->setNext(group[GroupNumber].mRootItem);
 
 		tLast = GroupNumber;
+		currGroup = GroupNumber;
 	}
 
 }
@@ -97,8 +98,9 @@ void MenuManager::selectRoot()
 	group[0].mCurrItem = group[0].mRootItem;
 	pNumber = group[0].mCurrItem->getNumber();
 	pSymbol = group[0].mCurrItem->getSymbol();
-	selectItemNum();
+	selectItemNum(currGroup);
 	m_EditMode = true;
+
 }
 
 void MenuManager::addItem(u8 SubMenuNumber, MenuItem * p_menuItem)
@@ -259,7 +261,6 @@ void MenuManager::Down(bool input)
 									pValue -= group[0].mCurrItem->m_decr * m_Speed;
 								}
 
-
 							}
 						}
 
@@ -407,9 +408,29 @@ void MenuManager::Select(bool input)
 				}
 
 				//Enter the number of output item
-				if (group[0].mCurrItem == group[0].mRootItem->getNext()) // CREATE comment
+//				if (group[0].mCurrItem == group[0].mRootItem->getNext()) // CREATE comment
+//				{
+//					selectItemNum();
+//				}
+
+				if (group[0].mCurrItem == group[1].mRootItem) // CREATE comment
 				{
-					selectItemNum();
+					selectItemNum(1);
+				}
+
+				if (group[0].mCurrItem == group[2].mRootItem) // CREATE comment
+				{
+					selectItemNum(2);
+				}
+
+				if (group[0].mCurrItem == group[3].mRootItem) // CREATE comment
+				{
+					selectItemNum(3);
+				}
+
+				if (group[0].mCurrItem == group[4].mRootItem) // CREATE comment
+				{
+					selectItemNum(4);
 				}
 
 			}
@@ -542,13 +563,13 @@ void MenuManager::TimerReset(bool input)
 /**
  * search item by selected number and move to RootItemNum
  */
-void MenuManager::selectItemNum(void)
+void MenuManager::selectItemNum(u8 gr)
 {
 
 	MenuItem *next = group0Last->getNext();
 
 	//Get number of selected output Item
-	MenuItem * SelectNumItem = group[0].mRootItem->getNext();
+	MenuItem * SelectNumItem = group[gr].mRootItem;
 	u16 cnt = 0;
 
 	//Get max num of item in selected group

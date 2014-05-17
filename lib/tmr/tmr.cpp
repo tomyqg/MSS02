@@ -32,89 +32,70 @@ void tmr::reset(void)
 	counter = 0;
 }
 
-//void tmr::update(void)
-//{
-//	switch (type)
-//	{
-//	case T_ON:
-//
-//		if (in) //input is active
-//		{
-//			if (!p) //firs cycle detect
-//			{
-//				counter = 0;
-//				p = true;
-//			}
-//
-//			if (counter > cmpVal) //set output after overflow
-//			{
-//				out = true;
-//
-//			}
-//			else //reset data
-//			{
-//				out = false;
-//				counter++;
-//			}
-//		}
-//		else
-//		{
-//			p = false;
-//			out = false;
-//		}
-//		break;
-//
-//	case T_OFF:
-//
-//		if (in) //input is active
-//		{
-//			p = false;
-//			out = true;
-//
-//		}
-//		else //input deactivate
-//		{
-//			if (!p) //firs cycle detect deactivate
-//			{
-//				counter = 0;
-//				p = true;
-//			}
-//
-//			if (counter > cmpVal) //reset output after overflow
-//			{
-//				out = false;
-//			}
-//			else //reset data
-//			{
-//				counter++;
-//			}
-//
-//		}
-//
-//	}
-//
-//	break;
-//	case T_PULSE:
-//
-//	if (run)
-//	{
-//
-//		if (counter > cmpVal) //invert output after overflow
-//		{
-//			counter = 0;
-//			out ^= true;
-//		}
-//		else
-//		{
-//			counter++;
-//		}
-//
-//	}
-//	break;
-//
-//	default:
-//	break;
-//}
+void tmr::update(void)
+{
+	switch (type)
+	{
+	case T_ON:
+
+		if (in) //input is active
+		{
+			if (!p) //firs cycle detect
+			{
+				counter = 0;
+				p = true;
+			}
+
+			if (counter > cmpVal) //set output after overflow
+			{
+				out = true;
+
+			}
+			else //reset data
+			{
+				out = false;
+				counter++;
+			}
+		}
+		else
+		{
+			p = false;
+			out = false;
+		}
+		break;
+
+	case T_OFF:
+
+		if (in) //input is active
+		{
+			p = false;
+			out = true;
+
+		}
+		else //input deactivate
+		{
+			if (!p) //firs cycle detect deactivate
+			{
+				counter = 0;
+				p = true;
+			}
+
+			if (counter > cmpVal) //reset output after overflow
+			{
+				out = false;
+			}
+			else //reset data
+			{
+				counter++;
+			}
+
+		}
+		break;
+	}
+
+
+
+}
 
 
 

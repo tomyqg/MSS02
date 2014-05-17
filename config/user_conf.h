@@ -5,7 +5,7 @@
 
 #include "profibus.h"
 #include "modbusSlave.h"
-
+#include "tmr.h"
 
 #include "softSpi.h"
 

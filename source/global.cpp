@@ -258,18 +258,7 @@ void global::cycle(void)
 	{
 		profibusDataExchange();
 
-		//MIN[4].setValue((float) x);
 
-		//	RTC_GetTime( RTC_Format_BIN, &tr);
-
-		//time = (float) tr.RTC_Seconds;
-		//time /= 100;
-		//time += (float) tr.RTC_Minutes;
-
-		//MIN[1].setValue(time);
-
-		//MIN[4].pValue = (float) ADC1->DR;
-		//	MIN[5].pValue = (float) ADC2->DR;
 		Menu.changeItem(MIN[15], MIN[4]);
 		Menu.setDefaultValue(SYS[6].getValue());
 		Menu.selectGroup(SYS[1].getValue());
@@ -323,7 +312,7 @@ void global::usrMenuBuild(void)
 	Menu.addLast(0, &SYS[7]);
 	ptrFtoI(&SYS[7].pValue, mbs_table, mbsCnt += 2);
 
-	MIN[1].config(sym_n, 1, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
+	MIN[1].config(sym_n, 1, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MIN[2].config(sym_n, 2, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
 	MIN[3].config(sym_n, 3, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
 	MIN[4].config(sym_n, 4, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
@@ -377,7 +366,7 @@ void global::usrMenuBuild(void)
 		ptrFtoI(&MIN[i].pValue, mbs_table, mbsCnt += 2);
 	}
 
-	MSY[1].config(sym_u, 1, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
+	MSY[1].config(sym_u, 1, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MSY[2].config(sym_u, 2, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
 	MSY[3].config(sym_u, 3, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MSY[4].config(sym_u, 4, 0, 2000, 1, 1, adr += 4, PARAMETR);
@@ -410,7 +399,7 @@ void global::usrMenuBuild(void)
 		ptrFtoI(&MSY[i].pValue, mbs_table, mbsCnt += 2);
 	}
 
-	MDI[1].config(sym_i, 1, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
+	MDI[1].config(sym_i, 1, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MDI[2].config(sym_i, 2, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MDI[3].config(sym_i, 3, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MDI[4].config(sym_i, 4, 0, 2000, 1, 1, adr += 4, PARAMETR);
@@ -427,7 +416,7 @@ void global::usrMenuBuild(void)
 		ptrFtoI(&MDI[i].pValue, mbs_table, mbsCnt += 2);
 	}
 
-	MDO[1].config(sym_o, 1, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
+	MDO[1].config(sym_o, 1, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MDO[2].config(sym_o, 2, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MDO[3].config(sym_o, 3, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MDO[4].config(sym_o, 4, 0, 2000, 1, 1, adr += 4, PARAMETR);

@@ -121,7 +121,7 @@ void modbusSlave::modbus_reply(uint8_t *packet, uint8_t string_length)
 
 int16_t modbusSlave::send_reply(uint8_t *query, uint8_t string_length)
 {
-	uint8_t i;
+	//uint8_t i;
 
 	modbus_reply(query, string_length);
 	string_length += 2;
@@ -135,7 +135,7 @@ int16_t modbusSlave::send_reply(uint8_t *query, uint8_t string_length)
 //		}
 //	}
 
-	return i; /* it does not mean that the write was succesful, though */
+	return 0; /* it does not mean that the write was succesful, though */
 }
 
 /*********************************************************************
