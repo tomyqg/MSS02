@@ -126,7 +126,6 @@ void IO_7segment::write(s16 value)
 
 }
 
-
 /**
  * Write  symbol and digit
  */
@@ -149,7 +148,6 @@ void IO_7segment::write(u8 letter, u16 value)
 
 }
 
-
 /**
  * Write  float value
  */
@@ -161,6 +159,7 @@ void IO_7segment::write(float value)
 	{ false, false, false, false };
 	float x;
 	s16 icel;
+	bool rZero;
 
 	//Индикатор знак минус
 	if (value < 0)
@@ -174,6 +173,15 @@ void IO_7segment::write(float value)
 	}
 
 	icel = (s16) (value);
+	if ((value - (float)icel) == 0.0)
+	{
+		rZero = true;
+	}
+	else
+	{
+		rZero = false;
+	}
+
 	if (icel >= 1000) //Тысячи
 	{
 		point[0] = false;
@@ -181,20 +189,46 @@ void IO_7segment::write(float value)
 	}
 	if (icel >= 100 && icel < 1000) //Сотни
 	{
-		point[1] = true;
-		x = 10;
+		if (rZero)
+		{
+			point[1] = false;
+			x = 1;
+		}
+		else
+		{
+			point[1] = true;
+			x = 10;
+		}
 	}
 	if (icel >= 10 && icel < 100) //Десятки
 	{
-		point[2] = true;
-		x = 100;
+		if (rZero)
+		{
+			point[2] = false;
+			x = 1;
+		}
+		else
+		{
+			point[2] = true;
+			x = 100;
+		}
+
 	}
 	if (icel < 10) //Единицы
 	{
-		point[3] = true;
-		x = 1000;
+
+		if (rZero)
+		{
+			point[3] = false;
+			x = 1;
+		}
+		else
+		{
+			point[3] = true;
+			x = 1000;
+		}
 	}
-	value *= x;//change it
+	value *= x; //change it
 
 	icel = (s16) (value);
 
@@ -209,8 +243,4 @@ void IO_7segment::write(float value)
 	DigitWrite(num[x1000], point[3], 3);
 
 }
-
-
-
-
 

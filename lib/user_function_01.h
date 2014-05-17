@@ -30,8 +30,7 @@ enum
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 bool filterOut(u16 &fcnt,u16 max);
-void initModbusUsart(void);
-void initModbusTimer(void);
+
 void initProfibusTimer(void);
 void initProfibusUsart(void);
 

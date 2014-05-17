@@ -16,6 +16,14 @@ global::global()
 
 void global::init(void)
 {
+
+	u32 Dev_Serial0, Dev_Serial1, Dev_Serial2;
+
+	Dev_Serial0 = *(u32*)(0x1FFF7A10);
+	Dev_Serial1 = *(u32*)(0x1FFF7A14);
+	Dev_Serial2 = *(u32*)(0x1FFF7A18);
+
+
 	initRTC();
 
 	Menu.config();
@@ -26,9 +34,59 @@ void global::init(void)
 	Menu.selectGroup(SYS[1].getValue());
 	Menu.selectRoot();
 
+	SYS[5].setValue(SOFT_VERSION);
+
+
+
+
+switch ((u32)SYS[4].getValue()) {
+	case 0:
+		UART_SPEED = 300;
+		break;
+	case 1:
+		UART_SPEED = 600;
+		break;
+	case 2:
+		UART_SPEED = 1200;
+		break;
+	case 3:
+		UART_SPEED = 2400;
+		break;
+	case 4:
+		UART_SPEED = 4800;
+		break;
+	case 5:
+		UART_SPEED = 9600;
+		break;
+	case 6:
+		UART_SPEED = 14400;
+		break;
+	case 7:
+		UART_SPEED = 19200;
+		break;
+	case 8:
+		UART_SPEED = 38400;
+		break;
+	case 9:
+		UART_SPEED = 56000;
+		break;
+	case 10:
+		UART_SPEED = 57600;
+		break;
+	case 11:
+		UART_SPEED = 115200;
+		break;
+
+	default:
+		UART_SPEED = 19200;
+		break;
+}
+
+
+
 	initModbusTimer();
 	initModbusUsart();
-	mbs_Slave.configureAddress(10);
+	mbs_Slave.configureAddress((u8)SYS[3].getValue());
 
 	//  initProfibusTimer();
 	//	initProfibusUsart();
@@ -93,7 +151,105 @@ void global::init(void)
 
 	//SysTick_Config(SYSTICK_VALUE);
 
+
+
+
+
+
+
 }
+
+
+
+void  global::initModbusUsart(void)
+{
+
+	NVIC_InitTypeDef NVIC_Init_Structure;
+	USART_InitTypeDef USART_Init_Structure;
+	GPIO_InitTypeDef GPIO_Init_Structure;
+
+	RCC_AHB1PeriphClockCmd(MODBUS_USART_TX_PORT_AF, ENABLE);
+	RCC_AHB1PeriphClockCmd(MODBUS_USART_RX_PORT_AF, ENABLE);
+	RCC_APB2PeriphClockCmd(MODBUS_USART_RCC, ENABLE);
+
+	//  Connect PXx to USARTx_Tx
+	GPIO_PinAFConfig(MODBUS_USART_TX_PORT, MODBUS_USART_TX_PINSOURCE,
+	MODBUS_USART_GPIO_AF);
+
+	//  Connect PXx to USARTx_Rx
+	GPIO_PinAFConfig(MODBUS_USART_RX_PORT, MODBUS_USART_RX_PINSOURCE,
+	MODBUS_USART_GPIO_AF);
+
+	GPIO_Init_Structure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init_Structure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init_Structure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_100MHz;
+
+	//Configure USART Tx as alternate function
+	GPIO_Init_Structure.GPIO_Pin = MODBUS_USART_TX_PIN;
+	GPIO_Init(MODBUS_USART_TX_PORT, &GPIO_Init_Structure);
+
+	//Configure USART Rx as alternate function
+	GPIO_Init_Structure.GPIO_Pin = MODBUS_USART_RX_PIN;
+	GPIO_Init(MODBUS_USART_RX_PORT, &GPIO_Init_Structure);
+
+	USART_Init_Structure.USART_BaudRate = UART_SPEED;
+	USART_Init_Structure.USART_WordLength = MODBUS_USART_WORDLENGTH;
+	USART_Init_Structure.USART_StopBits = MODBUS_USART_STOPBITS;
+	USART_Init_Structure.USART_Parity = MODBUS_USART_PARITY;
+	USART_Init_Structure.USART_HardwareFlowControl = MODBUS_USART_HWFWCTRL;
+	USART_Init_Structure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_Init(MODBUS_USART, &USART_Init_Structure);
+	USART_Cmd(MODBUS_USART, ENABLE);
+	USART_ITConfig(MODBUS_USART, USART_IT_RXNE, ENABLE);
+
+	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_USART_IRQN;
+    NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 15;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_Init_Structure);
+	NVIC_EnableIRQ(MODBUS_USART_IRQN);
+}
+
+void global::initModbusTimer(void)
+{
+	uint16_t bytePerSecond; //  serial speed (bit/s)  / 8
+	float timeForByte; // 1 byte transmit/recive time
+	uint16_t overtime; // overtime
+	uint16_t TimPeriod;
+
+	bytePerSecond = UART_SPEED / 8;
+
+	timeForByte = (1.0 / (float) bytePerSecond) * 1000000.0; // = N mks  (*1000000 - correction for timer )
+
+	overtime = 300; // added to timeForByte
+
+	TimPeriod = (uint16_t) timeForByte + overtime;
+
+	NVIC_InitTypeDef NVIC_Init_Structure;
+	TIM_TimeBaseInitTypeDef TimeBaseInit_Structure;
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+
+	TimeBaseInit_Structure.TIM_Prescaler = 83;
+	TimeBaseInit_Structure.TIM_Period = TimPeriod; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(MODBUS_TIMER, &TimeBaseInit_Structure);
+	TIM_Cmd(MODBUS_TIMER, ENABLE);
+	TIM_ARRPreloadConfig(MODBUS_TIMER, ENABLE);
+
+	TIM_ITConfig(MODBUS_TIMER, TIM_IT_Update, ENABLE);
+
+	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_TIMER_IRQN;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 16;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_Init_Structure);
+
+}
+
+
 
 void global::cycle(void)
 {
@@ -117,6 +273,7 @@ void global::cycle(void)
 		Menu.changeItem(MIN[15], MIN[4]);
 		Menu.setDefaultValue(SYS[6].getValue());
 		Menu.selectGroup(SYS[1].getValue());
+
 		Menu.Up(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1));
 		Menu.Down(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
@@ -147,12 +304,12 @@ void global::usrMenuBuild(void)
 	Menu.addItem(0, &RT[1]);
 	ptrFtoI(&RT[1].pValue, mbs_table, mbsCnt += 2);
 
-	SYS[0].config(sym_P, 0, 0, 9999, 1, 0, adr += 4, PARAMETR);
-	SYS[1].config(sym_C, 1, 1, USED_BOARDS, 1, 1, adr += 4, PARAMETR);
-	SYS[2].config(sym_C, 2, 1, 2, 1, 1, adr += 4, PARAMETR);
-	SYS[3].config(sym_C, 3, 0, 255, 1, 1, adr += 4, PARAMETR);
-	SYS[4].config(sym_C, 4, 0, 9999, 0.01, 0.01, adr += 4, PARAMETR);
-	SYS[5].config(sym_C, 5, 0, 1000, 1, 1, 0, OUT_VALUE);
+	SYS[0].config(sym_P, 0, 0, 9999, 1, 0, adr += 4, PARAMETR);   //password
+	SYS[1].config(sym_C, 1, 1, USED_BOARDS, 1, 1, adr += 4, PARAMETR); //type of board
+	SYS[2].config(sym_C, 2, 1, 2, 1, 1, adr += 4, PARAMETR); //Protocol type
+	SYS[3].config(sym_C, 3, 1, 255, 1, 1, adr += 4, PARAMETR); //address device
+	SYS[4].config(sym_C, 4, 0, 11, 1, 5, adr += 4, PARAMETR); //Baudrate
+	SYS[5].config(sym_C, 5, 0, 1000, 1, 1, 0, OUT_VALUE); //soft version
 	SYS[6].config(sym_C, 6, 0, 1, 1, 0, adr += 4, PARAMETR);
 	SYS[7].config(sym_C, 7, 0, 9999, 1, 0, adr += 4, PARAMETR);
 
@@ -210,7 +367,7 @@ void global::usrMenuBuild(void)
 	MIN[42].config(sym_n, 42, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MIN[43].config(sym_n, 43, 0, 2000, 1, 1, adr += 4, PARAMETR);
 	MIN[44].config(sym_n, 44, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[45].config(sym_n, 45, 0, 2000, 1, 1, adr += 4, PARAMETR);
+	MIN[45].config(sym_n, 45, 0, 2000, 0.1, 1, adr += 4, PARAMETR);
 
 	Menu.addRoot(1, &MIN[1]);
 	ptrFtoI(&MIN[1].pValue, mbs_table, mbsCnt += 2);

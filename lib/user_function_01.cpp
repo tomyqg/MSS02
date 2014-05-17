@@ -9,6 +9,7 @@
 
 
 
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -26,94 +27,6 @@ bool filterOut(u16 &fcnt, u16 max)
 		fcnt++;
 		return false;
 	}
-
-}
-
-void initModbusUsart(void)
-{
-
-	NVIC_InitTypeDef NVIC_Init_Structure;
-	USART_InitTypeDef USART_Init_Structure;
-	GPIO_InitTypeDef GPIO_Init_Structure;
-
-	RCC_AHB1PeriphClockCmd(MODBUS_USART_TX_PORT_AF, ENABLE);
-	RCC_AHB1PeriphClockCmd(MODBUS_USART_RX_PORT_AF, ENABLE);
-	RCC_APB2PeriphClockCmd(MODBUS_USART_RCC, ENABLE);
-
-	//  Connect PXx to USARTx_Tx
-	GPIO_PinAFConfig(MODBUS_USART_TX_PORT, MODBUS_USART_TX_PINSOURCE,
-	MODBUS_USART_GPIO_AF);
-
-	//  Connect PXx to USARTx_Rx
-	GPIO_PinAFConfig(MODBUS_USART_RX_PORT, MODBUS_USART_RX_PINSOURCE,
-	MODBUS_USART_GPIO_AF);
-
-	GPIO_Init_Structure.GPIO_OType = GPIO_OType_PP;
-	GPIO_Init_Structure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init_Structure.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_100MHz;
-
-	//Configure USART Tx as alternate function
-	GPIO_Init_Structure.GPIO_Pin = MODBUS_USART_TX_PIN;
-	GPIO_Init(MODBUS_USART_TX_PORT, &GPIO_Init_Structure);
-
-	//Configure USART Rx as alternate function
-	GPIO_Init_Structure.GPIO_Pin = MODBUS_USART_RX_PIN;
-	GPIO_Init(MODBUS_USART_RX_PORT, &GPIO_Init_Structure);
-
-	USART_Init_Structure.USART_BaudRate = MODBUS_USART_BAUDRATE;
-	USART_Init_Structure.USART_WordLength = MODBUS_USART_WORDLENGTH;
-	USART_Init_Structure.USART_StopBits = MODBUS_USART_STOPBITS;
-	USART_Init_Structure.USART_Parity = MODBUS_USART_PARITY;
-	USART_Init_Structure.USART_HardwareFlowControl = MODBUS_USART_HWFWCTRL;
-	USART_Init_Structure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	USART_Init(MODBUS_USART, &USART_Init_Structure);
-	USART_Cmd(MODBUS_USART, ENABLE);
-	USART_ITConfig(MODBUS_USART, USART_IT_RXNE, ENABLE);
-
-	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_USART_IRQN;
-    NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 15;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_Init_Structure);
-	NVIC_EnableIRQ(MODBUS_USART_IRQN);
-}
-
-void initModbusTimer(void)
-{
-	uint16_t bytePerSecond; //  serial speed (bit/s)  / 8
-	float timeForByte; // 1 byte transmit/recive time
-	uint16_t overtime; // overtime
-	uint16_t TimPeriod;
-
-	bytePerSecond = MODBUS_USART_BAUDRATE / 8;
-
-	timeForByte = (1.0 / (float) bytePerSecond) * 1000000.0; // = N mks  (*1000000 - correction for timer )
-
-	overtime = 300; // added to timeForByte
-
-	TimPeriod = (uint16_t) timeForByte + overtime;
-
-	NVIC_InitTypeDef NVIC_Init_Structure;
-	TIM_TimeBaseInitTypeDef TimeBaseInit_Structure;
-
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-
-	TimeBaseInit_Structure.TIM_Prescaler = 83;
-	TimeBaseInit_Structure.TIM_Period = TimPeriod; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
-	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
-	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(MODBUS_TIMER, &TimeBaseInit_Structure);
-	TIM_Cmd(MODBUS_TIMER, ENABLE);
-	TIM_ARRPreloadConfig(MODBUS_TIMER, ENABLE);
-
-	TIM_ITConfig(MODBUS_TIMER, TIM_IT_Update, ENABLE);
-
-	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_TIMER_IRQN;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 16;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_Init_Structure);
 
 }
 

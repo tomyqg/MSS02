@@ -35,7 +35,8 @@ public:
 	float getDefValue(void);
 	bool getType();
 
-	float m_inc;
+	float m_incr; //increment value
+	float m_decr; //decrement value
 	float pValue;
 private:
 

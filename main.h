@@ -4,6 +4,8 @@
 #include "stm32f4xx_conf.h"
 //#include "user_conf.h"
 
+const float SOFT_VERSION = 0.001;
+
 
 const uint32_t  SYSTICK_VALUE = 168000;
 const uint32_t  SYSCLK_VALUE = 168000000;
@@ -12,7 +14,7 @@ const uint32_t  SYSCLK_VALUE = 168000000;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MODBUS_USART              USART6
-#define MODBUS_USART_BAUDRATE    (uint32_t)19200
+#define MODBUS_USART_BAUDRATE    (uint32_t)921600
 
 #define MODBUS_USART_WORDLENGTH   USART_WordLength_8b
 #define MODBUS_USART_STOPBITS     USART_StopBits_1

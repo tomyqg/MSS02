@@ -164,13 +164,22 @@ void MenuManager::Up(bool input)
 
 						if (scrollCounter[0] == 1)
 						{
-							if (group[0].mCurrItem->m_inc == 0) //default increment 0.001
+							if (group[0].mCurrItem->m_incr == 0) //default increment 0.001
 							{
 								pValue += 0.001 * x * m_Speed;
 							}
 							else
 							{
-								pValue += group[0].mCurrItem->m_inc * m_Speed;
+								int c = (int) (pValue * (1 / group[0].mCurrItem->m_incr)) % 5;
+
+								if (c != 0)
+								{
+									pValue += group[0].mCurrItem->m_incr * 1;
+								}
+								else
+								{
+									pValue += group[0].mCurrItem->m_incr * m_Speed;
+								}
 							}
 						}
 
@@ -233,13 +242,24 @@ void MenuManager::Down(bool input)
 
 						if (scrollCounter[0] == 1)
 						{
-							if (group[0].mCurrItem->m_inc == 0)
+							if (group[0].mCurrItem->m_decr == 0)
 							{
 								pValue -= 0.001 * x * m_Speed;
 							}
 							else
 							{
-								pValue -= group[0].mCurrItem->m_inc * m_Speed;
+								int c = (int) (pValue * (1 / group[0].mCurrItem->m_decr)) % 5;
+
+								if (c != 0)
+								{
+									pValue -= group[0].mCurrItem->m_decr * 1;
+								}
+								else
+								{
+									pValue -= group[0].mCurrItem->m_decr * m_Speed;
+								}
+
+
 							}
 						}
 
@@ -268,7 +288,7 @@ void MenuManager::delayScroll(bool input, bool &fp)
 	{
 		scrollCounter[0]++;
 
-		if (scrollCounter[0] > 900)
+		if (scrollCounter[0] > 1000)
 		{
 			scrollCounter[1]++;
 			scrollCounter[0] = 0;
@@ -277,7 +297,7 @@ void MenuManager::delayScroll(bool input, bool &fp)
 		//Speed 1
 		if (scrollCounter[1] > 5)
 		{
-			m_Speed = 2;
+			m_Speed = 5;
 		}
 		//Speed 2
 		if (scrollCounter[1] > 25)
@@ -285,17 +305,17 @@ void MenuManager::delayScroll(bool input, bool &fp)
 			m_Speed = 10;
 		}
 		//Speed 3
-		if (scrollCounter[1] > 50)
+		if (scrollCounter[1] > 40)
 		{
 			m_Speed = 50;
 		}
 		//Speed 4
-		if (scrollCounter[1] > 75)
+		if (scrollCounter[1] > 50)
 		{
 			m_Speed = 100;
 		}
 		//Speed 5
-		if (scrollCounter[1] > 100)
+		if (scrollCounter[1] > 70)
 		{
 			m_Speed = 500;
 		}

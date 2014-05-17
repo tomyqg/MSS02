@@ -16,7 +16,8 @@ MenuItem::MenuItem(u8 symbol, u16 numItem, float LowLimit, float HighLimit, floa
  */
 void MenuItem::config(u8 symbol, u16 numItem, float LowLimit, float HighLimit, float inc, float defValue, u16 flashAddress, bool itParametr)
 {
-	m_inc = inc;
+	m_incr = inc;
+	m_decr = inc;
 	m_Parametr = itParametr;
 	m_defValue = defValue;
 	m_flashAddress = flashAddress;
