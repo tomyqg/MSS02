@@ -41,6 +41,17 @@ enum {
 const uint8_t fsupported[] = { FC_READ_REGS, FC_WRITE_REG, FC_WRITE_REGS };
 
 
+typedef struct
+{
+	u16 mbAddr;
+	u16 act;
+	float mbValue;
+
+} mb_to_flash ;
+
+
+
+
 
 class modbusSlave{
 
@@ -52,7 +63,8 @@ public:
 	void configureAddress(uint8_t slaveAddress);
 
 	int16_t update(u16 **regs, u16 regs_size);
-
+	mb_to_flash mbToFlashData;
+	volatile u8 act;
 private:
 	u8 slaveAddress;
 

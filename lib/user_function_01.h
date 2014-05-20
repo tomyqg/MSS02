@@ -38,7 +38,7 @@ void gpioInit(IO_7segment * SevenSeg, softSpi * spiFlash);
 void usrMenuBuild(void);
 void profibusDataExchange(void);
 void send_USART_dma(const uint8_t *buff, uint8_t size);
-
+float ItoF(u16 **buff, u16 number);
 
 void initRTC(void);
 

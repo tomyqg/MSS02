@@ -135,10 +135,8 @@ void MenuManager::Up(bool input)
 	{
 		if (!fpUp || (m_Speed > 1))
 		{
-
 			if (!m_EditMode)
 			{
-
 				//Check password
 				if ((group[0].mCurrItem == PasswordPv && PasswordOk) || (PasswordSp->getValue() == 0) || group[0].mCurrItem != PasswordPv)
 				{
@@ -377,7 +375,7 @@ void MenuManager::Select(bool input)
 			if (!m_EditMode)
 			{
 				m_EditMode = true;
-				pValue = group[0].mCurrItem->getValue();
+				pValue = group[0].mCurrItem->getValue(); //get stored value in item to temp for change
 			}
 			else
 			{
@@ -407,32 +405,6 @@ void MenuManager::Select(bool input)
 					Up(true);
 				}
 
-				//Enter the number of output item
-//				if (group[0].mCurrItem == group[0].mRootItem->getNext()) // CREATE comment
-//				{
-//					selectItemNum();
-//				}
-
-				if (group[0].mCurrItem == group[1].mRootItem) // CREATE comment
-				{
-					selectItemNum(1);
-				}
-
-				if (group[0].mCurrItem == group[2].mRootItem) // CREATE comment
-				{
-					selectItemNum(2);
-				}
-
-				if (group[0].mCurrItem == group[3].mRootItem) // CREATE comment
-				{
-					selectItemNum(3);
-				}
-
-				if (group[0].mCurrItem == group[4].mRootItem) // CREATE comment
-				{
-					selectItemNum(4);
-				}
-
 			}
 
 			fpSelect = true;
@@ -457,7 +429,7 @@ void MenuManager::Select(bool input)
  */
 void MenuManager::readFlash(void)
 {
-	//Increment group type
+//Increment group type
 	for (u8 i = 0; i <= USED_BOARDS; i++)
 	{
 		//Select root item of board
@@ -568,23 +540,23 @@ void MenuManager::selectItemNum(u8 gr)
 
 	MenuItem *next = group0Last->getNext();
 
-	//Get number of selected output Item
-	MenuItem * SelectNumItem = group[gr].mRootItem;
+//Get number of selected output Item
+	MenuItem * SelectNumItem = next; //group[gr].mRootItem;
 	u16 cnt = 0;
 
-	//Get max num of item in selected group
+//Get max num of item in selected group
 	while (next != NULL)
 	{
 		cnt++;
 		next = next->getNext();
 	}
 
-	//reinstal Hlim
+//reinstal Hlim
 	SelectNumItem->setHLim((float) cnt);
 
 	next = group0Last->getNext();
 
-	//Search item by number
+//Search item by number
 	for (u16 i = 1; i <= cnt; i++)
 	{
 		if (i == SelectNumItem->getValue())
@@ -608,18 +580,30 @@ void MenuManager::changeItem(MenuItem &Trg, MenuItem &Dst, MenuItem Src)
 		Dst.pValue = Src.pValue;
 
 		Trg.setValue(0.0);
-		Flash.writeFloat(Trg.getAddr(), pValue);
-		Flash.writeFloat(Dst.getAddr(), pValue);
+		Flash.writeFloat(Trg.getAddr(), Trg.pValue);
+		Flash.writeFloat(Dst.getAddr(), Dst.pValue);
 
 	}
 }
+
+void MenuManager::systemRestart(MenuItem &Trg)
+{
+
+	if (Trg.getValue())
+	{
+		Trg.setValue(0.0);
+		Flash.writeFloat(Trg.getAddr(), 0.0);
+		NVIC_SystemReset();
+	}
+}
+
 void MenuManager::changeItem(MenuItem &Dst, MenuItem Src)
 {
 
 	if (Dst.getValue() == 0.0)
 	{
 		Dst.pValue = Src.pValue;
-		Flash.writeFloat(Dst.getAddr(), pValue);
+		Flash.writeFloat(Dst.getAddr(), Dst.pValue);
 	}
 
 }

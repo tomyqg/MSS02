@@ -185,8 +185,12 @@ void TIM3_IRQHandler(void)
 				prg.mbs_Slave.update(prg.mbs_table, BUFF_SIZE);
 				uart_byte_cnt = 0;
 
+
 			}
 			MODBUS_TIMER->CNT = 0;
+
+
+
 		}
 		else
 		{

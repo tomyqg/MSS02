@@ -135,13 +135,14 @@ void IO_7segment::write(u8 letter, u16 value)
 	u8 x[DigitMax];
 	u32 factor = 1;
 
-	for (u8 i = 0; i < DigitMax - 1; i++)
+	for (u8 i = 0; i < DigitMax - 2; i++)
 	{
 		x[i] = (value / factor) % 10;
 		factor *= 10;
 		DigitWrite(num[x[i]], false, i);
 	}
 
+	DigitWrite(sym_neg, false, DigitMax - 2); //display "-"
 	DigitWrite(letter, false, DigitMax - 1);
 
 	GpioIO.SG.Port->BSRRH = GpioIO.SG.Pin;

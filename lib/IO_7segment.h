@@ -58,7 +58,8 @@ sym_U = 0x3E,//!< sym_U
 sym_u = 0x1C,//!< sym_u
 sym_Y = 0x6E,//!< sym_Y
 sym_PP = 0x37,//Ï
-sym_GG = 0x31 //Ã
+sym_GG = 0x31, //Ã
+sym_neg = 0x40, //-
 
 };
 

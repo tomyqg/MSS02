@@ -4,7 +4,7 @@
 #include "stm32f4xx_conf.h"
 //#include "user_conf.h"
 
-const float SOFT_VERSION = 0.001;
+const float SOFT_VERSION = 11;
 
 
 const uint32_t  SYSTICK_VALUE = 168000;
@@ -113,7 +113,7 @@ const uint32_t  SYSCLK_VALUE = 168000000;
 // USER PARAMETR
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define BUFF_SIZE 280 //Modbus table size
+#define BUFF_SIZE 350 //Modbus table size
 #define UART_BUFFER_SIZE 100
 #define USE_COMUNICATION_LED
 #define COMUNICATION_LED_PORT      GPIOC

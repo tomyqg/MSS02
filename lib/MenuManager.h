@@ -4,38 +4,32 @@
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
 
-
-
-
 /*Structure of menu:            Used method:
-				   RootItem     //Up/Increase
-					  |         //Down/Decrease
-				    Item C1     //Select/Exit
-					  |
-				    Item C2
-					  |
-					 ...
-					  |
-				    Item C7
-					  |
-				   Selector     - switch submenu
-				 /	  |    \
+ RootItem     //Up/Increase
+ |         //Down/Decrease
+ Item C1     //Select/Exit
+ |
+ Item C2
+ |
+ ...
+ |
+ Item C7
+ |
+ Selector     - switch submenu
+ /	  |    \
 Item A1   Item B1   Item C1   Item X1 ... Item N1
-    |        |        |          |          |
-Item A2   Item B2   Item C2   Item X2 ... Item N2
-    |        |        |          |          |
-   ...      ...      ...        ...        ...
-    |        |        |          |          |
-Item An   Item Bn   Item Cn   Item Xn ... Item Nn
+ |        |        |          |          |
+ Item A2   Item B2   Item C2   Item X2 ... Item N2
+ |        |        |          |          |
+ ...      ...      ...        ...        ...
+ |        |        |          |          |
+ Item An   Item Bn   Item Cn   Item Xn ... Item Nn
 
-*/
-
+ */
 
 class MenuManager
 {
 public:
-
-
 
 	MenuItem * PasswordSp;  //memory value pass
 	MenuItem * PasswordPv;  //input value pass
@@ -52,7 +46,6 @@ public:
 	void selectGroup(u8 SubMenuNumber);
 	MenuItem * getRoot();
 
-
 	//Navigation methods
 	void Up(bool input);
 	void Down(bool input);
@@ -67,7 +60,8 @@ public:
 	void TimerReset(bool input);
 	float getPointFactor(float value);
 
-	void changeItem(MenuItem &Trg , MenuItem &Dst, MenuItem Src);
+	void changeItem(MenuItem &Trg, MenuItem &Dst, MenuItem Src);
+	void systemRestart(MenuItem &Trg);
 	void changeItem(MenuItem &Dst, MenuItem Src);
 	IO_7segment* m_pMenuLCD;        //Output driver pointer
 	eeprom Flash;
@@ -82,8 +76,6 @@ private:
 
 	struct grMenu group[USED_BOARDS + 1];
 
-
-
 	MenuItem * group0Last;          //last item in root group[0]
 
 	//Displayed value
@@ -96,6 +88,6 @@ private:
 
 	u32 scrollCounter[3];           //counter for scroll data
 	float m_Speed = 0;              //Scroll speed
-int currGroup; //selected group (board)
+	int currGroup;                  //selected group (board)
 };
 #endif // MENUMANAGE_H

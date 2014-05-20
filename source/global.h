@@ -32,9 +32,11 @@ public:
 	u16 SignalOk[2];
 
 	MenuManager Menu;
-	MenuItem RT[2]; //IO item
-	MenuItem SYS[8]; //System item
-	MenuItem MIN[46]; //MIN01
+
+	void changeVisibleItem(void);
+	MenuItem RT[1]; //IO item
+	MenuItem SYS[9]; //System item
+	MenuItem MIN[41]; //MIN01
 	MenuItem MSY[25]; //MSY02
 	MenuItem MDI[9]; //MDI02
 	MenuItem MDO[37]; //MDO02

@@ -406,3 +406,10 @@ void initRTC(void)
 
 }
 
+float ItoF(u16 **buff, u16 number)
+{
+	float *pf;
+	pf = (float*)buff[number];
+
+return *pf;
+}

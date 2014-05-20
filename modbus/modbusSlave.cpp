@@ -289,7 +289,17 @@ int16_t modbusSlave::preset_multiple_registers(uint16_t start_addr, uint8_t coun
 
 	if (write_regs(start_addr, query, regs))
 	{
+
 		status = send_reply(packet, RESPONSE_SIZE);
+
+	}
+
+	if (act == 0)
+	{
+		act=1;
+		mbToFlashData.mbAddr = start_addr;
+		mbToFlashData.mbValue = ItoF(regs, start_addr);
+
 	}
 
 	return (status);
@@ -418,7 +428,7 @@ int16_t modbusSlave::update(u16 **regs, u16 regs_size)
 		break;
 	case FC_WRITE_REGS:
 
-	return preset_multiple_registers(start_addr, uart_buffer[REGS_L], uart_buffer, regs);
+		return preset_multiple_registers(start_addr, uart_buffer[REGS_L], uart_buffer, regs);
 		break;
 	case FC_WRITE_REG:
 

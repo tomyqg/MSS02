@@ -17,14 +17,18 @@ global::global()
 void global::init(void)
 {
 
-	u32 Dev_Serial0, Dev_Serial1, Dev_Serial2;
 
-	Dev_Serial0 = *(u32*)(0x1FFF7A10);
-	Dev_Serial1 = *(u32*)(0x1FFF7A14);
-	Dev_Serial2 = *(u32*)(0x1FFF7A18);
+	mbs_table[97] = (u16*)(0x1FFF7A10);
+	mbs_table[98] = (u16*)(0x1FFF7A12);
+	mbs_table[99] = (u16*)(0x1FFF7A14);
+	mbs_table[100] = (u16*)(0x1FFF7A16);
+	mbs_table[101] = (u16*)(0x1FFF7A18);
+	mbs_table[102] = (u16*)(0x1FFF7A1A);
 
 
 	initRTC();
+
+
 
 	Menu.config();
 	gpioInit(Menu.m_pMenuLCD, Menu.Flash.spiNum);
@@ -36,10 +40,8 @@ void global::init(void)
 
 	SYS[5].setValue(SOFT_VERSION);
 
-
-
-
-switch ((u32)SYS[4].getValue()) {
+	switch ((u32) SYS[4].getValue())
+	{
 	case 0:
 		UART_SPEED = 300;
 		break;
@@ -80,13 +82,11 @@ switch ((u32)SYS[4].getValue()) {
 	default:
 		UART_SPEED = 19200;
 		break;
-}
-
-
+	}
 
 	initModbusTimer();
 	initModbusUsart();
-	mbs_Slave.configureAddress((u8)SYS[3].getValue());
+	mbs_Slave.configureAddress((u8) SYS[3].getValue());
 
 	//  initProfibusTimer();
 	//	initProfibusUsart();
@@ -151,17 +151,9 @@ switch ((u32)SYS[4].getValue()) {
 
 	//SysTick_Config(SYSTICK_VALUE);
 
-
-
-
-
-
-
 }
 
-
-
-void  global::initModbusUsart(void)
+void global::initModbusUsart(void)
 {
 
 	NVIC_InitTypeDef NVIC_Init_Structure;
@@ -204,7 +196,7 @@ void  global::initModbusUsart(void)
 	USART_ITConfig(MODBUS_USART, USART_IT_RXNE, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_USART_IRQN;
-    NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 15;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 15;
 	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
@@ -249,26 +241,77 @@ void global::initModbusTimer(void)
 
 }
 
-
-
 void global::cycle(void)
 {
 
 	while (1)
 	{
+
+
+
+
+
+
+
 		profibusDataExchange();
-
-
-		Menu.changeItem(MIN[15], MIN[4]);
+		changeVisibleItem();
+		Menu.changeItem(MIN[13], MIN[4]);
 		Menu.setDefaultValue(SYS[6].getValue());
 		Menu.selectGroup(SYS[1].getValue());
-
+		Menu.systemRestart(SYS[8]);
 		Menu.Up(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1));
 		Menu.Down(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
 		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) || GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) || GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 		Menu.Display();
+
+		if (mbs_Slave.act>0){
+			Menu.Flash.writeFloat(mbs_Slave.mbToFlashData.mbAddr*2, mbs_Slave.mbToFlashData.mbValue);
+			mbs_Slave.act=0;
+		}
 	}
+
+}
+
+void global::changeVisibleItem(void)
+{
+
+	static float mem[5];
+
+	switch ((int)SYS[1].getValue())
+	{
+	case 1.0:
+		if (MIN[1].getValue() != mem[1]) // CREATE comment
+		{
+			mem[1]=MIN[1].getValue();
+			Menu.selectItemNum(1);
+			Menu.selectRoot();
+		}
+	case 2.0:
+		if (MSY[1].getValue() != mem[2]) // CREATE comment
+		{
+			mem[2]=MSY[1].getValue();
+			Menu.selectItemNum(2);
+		}
+	case 3.0:
+		if (MDI[1].getValue() != mem[3]) // CREATE comment
+		{
+			mem[3]=MDI[1].getValue();
+			Menu.selectItemNum(3);
+		}
+	case 4.0:
+		if (MDO[1].getValue() != mem[4]) // CREATE comment
+		{
+			mem[4]=MDO[1].getValue();
+			Menu.selectItemNum(4);
+		}
+
+		break;
+	default:
+		Menu.selectItemNum(1);
+		break;
+	}
+
 
 }
 
@@ -278,89 +321,85 @@ void global::ptrFtoI(float *value, u16 **buff, u16 number)
 	buff[number + 1] = buff[number] + 1;
 }
 
+
+
 void global::usrMenuBuild(void)
 {
 
 	u16 mbsCnt = 0;		// counter of modbus data record
 
-	u16 adr = 4;
+	u16 adr = 0;
 
-	RT[0].config(sym_r, 0, 0, 10, 1, 0, 0, OUT_VALUE);
-	RT[1].config(sym_r, 1, 1, 10, 1, 1, adr += 4, PARAMETR);
+
+	RT[0].config(sym_r, 0, 0, 9999, 1, 0, adr, OUT_VALUE); //Отображаемое значение на экране
 
 	Menu.addRoot(0, &RT[0]);
 	ptrFtoI(&RT[0].pValue, mbs_table, mbsCnt);
-	Menu.addItem(0, &RT[1]);
-	ptrFtoI(&RT[1].pValue, mbs_table, mbsCnt += 2);
 
-	SYS[0].config(sym_P, 0, 0, 9999, 1, 0, adr += 4, PARAMETR);   //password
-	SYS[1].config(sym_C, 1, 1, USED_BOARDS, 1, 1, adr += 4, PARAMETR); //type of board
-	SYS[2].config(sym_C, 2, 1, 2, 1, 1, adr += 4, PARAMETR); //Protocol type
-	SYS[3].config(sym_C, 3, 1, 255, 1, 1, adr += 4, PARAMETR); //address device
-	SYS[4].config(sym_C, 4, 0, 11, 1, 5, adr += 4, PARAMETR); //Baudrate
-	SYS[5].config(sym_C, 5, 0, 1000, 1, 1, 0, OUT_VALUE); //soft version
-	SYS[6].config(sym_C, 6, 0, 1, 1, 0, adr += 4, PARAMETR);
-	SYS[7].config(sym_C, 7, 0, 9999, 1, 0, adr += 4, PARAMETR);
+	SYS[0].config(sym_C,1,0,9999,1,0,adr += 4,PARAMETR); //Ввод пароля для входа в меню
+	SYS[1].config(sym_C,2,1,4,1,1,adr += 4,PARAMETR); //Тип модуля
+	SYS[2].config(sym_C,3,1,2,1,1,adr += 4,PARAMETR); //Тип протокола
+	SYS[3].config(sym_C,4,0,255,1,1,adr += 4,PARAMETR); //Адрес
+	SYS[4].config(sym_C,5,0,11,1,5,adr += 4,PARAMETR); //Скорость передачи данных
+	SYS[5].config(sym_C,6,0,9999,0,0,adr += 4,OUT_VALUE); //Версия прошивки
+	SYS[6].config(sym_C,7,0,1,1,0,adr += 4,PARAMETR); //Вернуть к заводским настройкам
+	SYS[7].config(sym_C,8,0,9999,1,0,adr += 4,PARAMETR); //Пароль для доступа
+	SYS[8].config(sym_C,9,0,1,1,0,adr += 4,PARAMETR); //Сброс контроллера
 
-	for (u8 i = 0; i < 7; i++)
+	for (u8 i = 0; i < 8; i++)
 	{
 		Menu.addItem(0, &SYS[i]);
 
 		ptrFtoI(&SYS[i].pValue, mbs_table, mbsCnt += 2);
 
 	}
-	Menu.addLast(0, &SYS[7]);
-	ptrFtoI(&SYS[7].pValue, mbs_table, mbsCnt += 2);
+	Menu.addLast(0, &SYS[8]);
+	ptrFtoI(&SYS[8].pValue, mbs_table, mbsCnt += 2);
 
-	MIN[1].config(sym_n, 1, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[2].config(sym_n, 2, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
-	MIN[3].config(sym_n, 3, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
-	MIN[4].config(sym_n, 4, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
-	MIN[5].config(sym_n, 5, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
-	MIN[6].config(sym_n, 6, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
-	MIN[7].config(sym_n, 7, 0, 2000, 1, 1, adr += 4, OUT_VALUE);
-	MIN[8].config(sym_n, 8, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[9].config(sym_n, 9, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[10].config(sym_n, 10, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[11].config(sym_n, 11, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[12].config(sym_n, 12, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[13].config(sym_n, 13, 0, 2000, 1, 20, adr += 4, PARAMETR);
-	MIN[14].config(sym_n, 14, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[15].config(sym_n, 15, 0, 4095, 1, 1860, adr += 4, PARAMETR);
-	MIN[16].config(sym_n, 16, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[17].config(sym_n, 17, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[18].config(sym_n, 18, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[19].config(sym_n, 19, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[20].config(sym_n, 20, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[21].config(sym_n, 21, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[22].config(sym_n, 22, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[23].config(sym_n, 23, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[24].config(sym_n, 24, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[25].config(sym_n, 25, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[26].config(sym_n, 26, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[27].config(sym_n, 27, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[28].config(sym_n, 28, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[29].config(sym_n, 29, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[30].config(sym_n, 30, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[31].config(sym_n, 31, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[32].config(sym_n, 32, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[33].config(sym_n, 33, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[34].config(sym_n, 34, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[35].config(sym_n, 35, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[36].config(sym_n, 36, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[37].config(sym_n, 37, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[38].config(sym_n, 38, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[39].config(sym_n, 39, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[40].config(sym_n, 40, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[41].config(sym_n, 41, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[42].config(sym_n, 42, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[43].config(sym_n, 43, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[44].config(sym_n, 44, 0, 2000, 1, 1, adr += 4, PARAMETR);
-	MIN[45].config(sym_n, 45, 0, 2000, 0.1, 1, adr += 4, PARAMETR);
+	MIN[1].config(sym_n,1,1,8,1,9,adr += 4,PARAMETR); //Отображаемый сигнал на экране
+	MIN[2].config(sym_n,2,0,9999,0,0,adr += 4,OUT_VALUE); //Текущее значение RMS 1
+	MIN[3].config(sym_n,3,0,9999,0,0,adr += 4,OUT_VALUE); //Текущее значение RMS 2
+	MIN[4].config(sym_n,4,0,4096,0,0,adr += 4,OUT_VALUE); //Значение текущее АЦП 1
+	MIN[5].config(sym_n,5,0,4096,0,0,adr += 4,OUT_VALUE); //Значение текущее АЦП 2
+	MIN[6].config(sym_n,6,0,9999,0,0,adr += 4,OUT_VALUE); //Значение текущее частоты 1
+	MIN[7].config(sym_n,7,0,9999,0,0,adr += 4,OUT_VALUE); //Значение текущее частоты 2
+	MIN[8].config(sym_n,8,0,9999,0,0,adr += 4,OUT_VALUE); //Значение текущее косинуса
+	MIN[9].config(sym_n,9,1,2,1,1,adr += 4,PARAMETR); //Тип сигнала переменка/постоянка 1
+	MIN[10].config(sym_n,10,1,2,1,1,adr += 4,PARAMETR); //Тип сигнала переменка/постоянка 2
+	MIN[11].config(sym_n,11,1,99,1,25,adr += 4,PARAMETR); //Количество усреднений данных 1
+	MIN[12].config(sym_n,12,1,99,1,25,adr += 4,PARAMETR); //Количество усреднений данных 2
+	MIN[13].config(sym_n,13,0,9999,1,2048,adr += 4,PARAMETR); //Задание нуля 1
+	MIN[14].config(sym_n,14,0,9999,1,2048,adr += 4,PARAMETR); //Задание нуля 2
+	MIN[15].config(sym_n,15,0,9999,1,1,adr += 4,PARAMETR); //Коэффициент канала 1
+	MIN[16].config(sym_n,16,0,9999,1,1,adr += 4,PARAMETR); //Коэффициент канала 2
+	MIN[17].config(sym_n,17,1,100,1,50,adr += 4,PARAMETR); //Усреднение АЦП канал 1
+	MIN[18].config(sym_n,18,1,100,1,50,adr += 4,PARAMETR); //Усреднение АЦП канал 2
+	MIN[19].config(sym_n,19,1,2,1,1,adr += 4,PARAMETR); //Реверс знак косинуса
+	MIN[20].config(sym_n,20,1,9999,1,500,adr += 4,PARAMETR); //Усреднение значения косинуса
+	MIN[21].config(sym_n,21,1,3,1,1,adr += 4,PARAMETR); //Выход аварии 1 назначение
+	MIN[22].config(sym_n,22,1,2,1,1,adr += 4,PARAMETR); //Инвертирование выхода 1
+	MIN[23].config(sym_n,23,0,9999,1,0,adr += 4,PARAMETR); //Значение уставки минимум 1
+	MIN[24].config(sym_n,24,0,9999,1,1,adr += 4,PARAMETR); //Значение уставки максимум 1
+	MIN[25].config(sym_n,25,0,99,1,5,adr += 4,PARAMETR); //Усреднение аварии 1
+	MIN[26].config(sym_n,26,1,2,1,1,adr += 4,PARAMETR); //Удержание аварии 1
+	MIN[27].config(sym_n,27,0,1,1,0,adr += 4,PARAMETR); //Значение выход 1
+	MIN[28].config(sym_n,28,1,3,1,1,adr += 4,PARAMETR); //Выход аварии 2 назначение
+	MIN[29].config(sym_n,29,1,2,1,1,adr += 4,PARAMETR); //Инвертирование выхода 2
+	MIN[30].config(sym_n,30,0,9999,1,0,adr += 4,PARAMETR); //Значение уставки минимум 2
+	MIN[31].config(sym_n,31,0,9999,1,1,adr += 4,PARAMETR); //Значение уставки максимум 2
+	MIN[32].config(sym_n,32,0,99,1,5,adr += 4,PARAMETR); //Усреднение аварии 2
+	MIN[33].config(sym_n,33,1,2,1,1,adr += 4,PARAMETR); //Удержание аварии 2
+	MIN[34].config(sym_n,34,0,1,1,0,adr += 4,PARAMETR); //Значение выход 2
+	MIN[35].config(sym_n,35,1,2,1,1,adr += 4,PARAMETR); //Дискретный вход 1 настройка
+	MIN[36].config(sym_n,36,0,1,1,0,adr += 4,PARAMETR); //Дискретный вход 1 значение
+	MIN[37].config(sym_n,37,1,2,1,1,adr += 4,PARAMETR); //Дискретный вход 2 настройка
+	MIN[38].config(sym_n,38,0,1,1,0,adr += 4,PARAMETR); //Дискретный вход 2 значение
+	MIN[39].config(sym_n,39,0,0,0,0,adr += 4,PARAMETR); //Резерв
+	MIN[40].config(sym_n,40,0,0,0,0,adr += 4,PARAMETR); //Резерв
 
 	Menu.addRoot(1, &MIN[1]);
 	ptrFtoI(&MIN[1].pValue, mbs_table, mbsCnt += 2);
-	for (u8 i = 2; i < 46; i++)
+	for (u8 i = 2; i < 41; i++)
 	{
 		Menu.addItem(1, &MIN[i]);
 		ptrFtoI(&MIN[i].pValue, mbs_table, mbsCnt += 2);
@@ -469,7 +508,7 @@ bool global::DwnToUp(u16 Value)
 	static u16 MinusHyst = 15;
 	static u8 mCurrPos = 0; // 0 = In Minus phase, 1 = In Plus phase
 
-	u16 ZeroOffset = (u16) MIN[15].getValue();
+	u16 ZeroOffset = (u16) MIN[13].getValue();
 	if (Value > ZeroOffset + PlusHyst)
 	{
 		if (mCurrPos == 0)
@@ -508,11 +547,11 @@ void global::itSampleADC(void)
 		MIN[4].pValue = (float) aADCavr[0];
 		MIN[5].pValue = (float) aADCavr[1];
 
-		if (ADC1->DR > ZeroOffset+250 || ADC1->DR < ZeroOffset-250 )
+		if (ADC1->DR > ZeroOffset + 250 || ADC1->DR < ZeroOffset - 250)
 		{
 			if (SignalOk[0] < 15000)
 			{
-				SignalOk[0]+=100;
+				SignalOk[0] += 100;
 			}
 		}
 
@@ -544,9 +583,9 @@ void global::itCalcFreq(void)
 	static float avrFr = 0.0;
 	static u8 i = 0;
 
-	 ZeroOffset = (u16) MIN[15].getValue();
+	ZeroOffset = (u16) MIN[13].getValue();
 
-	if (SignalOk[0]>0)
+	if (SignalOk[0] > 0)
 	{
 
 		if (DwnToUp(aADCavr[0]))
@@ -567,7 +606,7 @@ void global::itCalcFreq(void)
 			//Расчет рмс
 			rms = sqrtf((float) rmsSum);
 			rms = rms / (float) CntValue;
-			MIN[3].setValue(CntValue);
+			MIN[2].setValue(CntValue);
 			CntValue = 0;
 			rmsSum = 0;
 
@@ -596,6 +635,8 @@ void global::itCalcFreq(void)
 	{
 		MIN[6].setValue(0.0);
 	}
+
+
 }
 
 void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
