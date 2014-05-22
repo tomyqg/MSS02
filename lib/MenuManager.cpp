@@ -133,13 +133,14 @@ void MenuManager::Up(bool input)
 	delayScroll(input, fpUp);
 	if (input == true)
 	{
-		if (!fpUp || (m_Speed > 1))
+		if (!fpUp || (m_Speed > 4))
 		{
 			if (!m_EditMode)
 			{
 				//Check password
 				if ((group[0].mCurrItem == PasswordPv && PasswordOk) || (PasswordSp->getValue() == 0) || group[0].mCurrItem != PasswordPv)
 				{
+
 					MenuItem *next = group[0].mCurrItem->getNext();
 
 					if (next != NULL)
@@ -149,6 +150,9 @@ void MenuManager::Up(bool input)
 
 					pNumber = group[0].mCurrItem->getNumber();
 					pSymbol = group[0].mCurrItem->getSymbol();
+					if (fpUp)
+						m_Speed = 4;
+
 				}
 			}
 
@@ -208,7 +212,7 @@ void MenuManager::Down(bool input)
 
 	if (input == true)
 	{
-		if (!fpDwn || (m_Speed > 1))
+		if (!fpDwn || (m_Speed > 4))
 		{
 			if (!m_EditMode)
 			{
@@ -227,6 +231,10 @@ void MenuManager::Down(bool input)
 
 				pNumber = group[0].mCurrItem->getNumber();
 				pSymbol = group[0].mCurrItem->getSymbol();
+
+				if (fpDwn)
+					m_Speed = 4;
+
 			}
 
 			//Decrease value
@@ -287,10 +295,20 @@ void MenuManager::delayScroll(bool input, bool &fp)
 	{
 		scrollCounter[0]++;
 
-		if (scrollCounter[0] > 1000)
+		if (scrollCounter[0] > 600)
 		{
-			scrollCounter[1]++;
-			scrollCounter[0] = 0;
+			if (m_EditMode)
+			{
+				scrollCounter[1]++;
+				scrollCounter[0] = 0;
+
+			}
+			else
+			{
+				scrollCounter[0] = 0;
+				m_Speed++;
+
+			}
 		}
 
 		//Speed 1

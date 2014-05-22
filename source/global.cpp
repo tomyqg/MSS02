@@ -40,7 +40,7 @@ void global::init(void)
 	mbs_table[304] = (u16*)(0x1FFF7A16);
 	mbs_table[305] = (u16*)(0x1FFF7A18);
 	mbs_table[306] = (u16*)(0x1FFF7A1A);
-	SYS[5].setValue(13);
+	SYS[5].setValue(14);
 
 	switch ((u32) SYS[4].getValue())
 	{
