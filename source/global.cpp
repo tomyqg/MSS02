@@ -18,12 +18,7 @@ void global::init(void)
 {
 
 
-	mbs_table[97] = (u16*)(0x1FFF7A10);
-	mbs_table[98] = (u16*)(0x1FFF7A12);
-	mbs_table[99] = (u16*)(0x1FFF7A14);
-	mbs_table[100] = (u16*)(0x1FFF7A16);
-	mbs_table[101] = (u16*)(0x1FFF7A18);
-	mbs_table[102] = (u16*)(0x1FFF7A1A);
+
 
 
 	initRTC();
@@ -31,14 +26,21 @@ void global::init(void)
 
 
 	Menu.config();
+	Menu.PasswordSp = &SYS[7];
+	Menu.PasswordPv = &SYS[0];
 	gpioInit(Menu.m_pMenuLCD, Menu.Flash.spiNum);
 	usrMenuBuild();
 
 	Menu.readFlash();
 	Menu.selectGroup(SYS[1].getValue());
 	Menu.selectRoot();
-
-	SYS[5].setValue(SOFT_VERSION);
+	mbs_table[301] = (u16*)(0x1FFF7A10);
+	mbs_table[302] = (u16*)(0x1FFF7A12);
+	mbs_table[303] = (u16*)(0x1FFF7A14);
+	mbs_table[304] = (u16*)(0x1FFF7A16);
+	mbs_table[305] = (u16*)(0x1FFF7A18);
+	mbs_table[306] = (u16*)(0x1FFF7A1A);
+	SYS[5].setValue(13);
 
 	switch ((u32) SYS[4].getValue())
 	{
@@ -262,7 +264,7 @@ void global::cycle(void)
 		Menu.Up(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1));
 		Menu.Down(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
-		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) || GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) || GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
+		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 		Menu.Display();
 
 		if (mbs_Slave.act>0){

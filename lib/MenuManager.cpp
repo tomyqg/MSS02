@@ -502,7 +502,7 @@ void MenuManager::TimerReset(bool input)
 	static bool p = 0;
 	static u32 ResetTime = 0;
 
-	if (!input == true) //input signal on
+	if (input == true) //input signal on
 	{
 		if (p == false) //first cycle
 		{
