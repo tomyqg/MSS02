@@ -40,7 +40,7 @@ void global::init(void)
 	mbs_table[304] = (u16*)(0x1FFF7A16);
 	mbs_table[305] = (u16*)(0x1FFF7A18);
 	mbs_table[306] = (u16*)(0x1FFF7A1A);
-	SYS[5].setValue(14);
+	SYS[5].setValue(15);
 
 	switch ((u32) SYS[4].getValue())
 	{
@@ -370,8 +370,8 @@ void global::usrMenuBuild(void)
 	MIN[10].config(sym_n,10,1,2,1,1,adr += 4,PARAMETR); //Тип сигнала переменка/постоянка 2
 	MIN[11].config(sym_n,11,1,99,1,25,adr += 4,PARAMETR); //Количество усреднений данных 1
 	MIN[12].config(sym_n,12,1,99,1,25,adr += 4,PARAMETR); //Количество усреднений данных 2
-	MIN[13].config(sym_n,13,0,9999,1,2048,adr += 4,PARAMETR); //Задание нуля 1
-	MIN[14].config(sym_n,14,0,9999,1,2048,adr += 4,PARAMETR); //Задание нуля 2
+	MIN[13].config(sym_n,13,0,0,2048,2048,adr += 4,PARAMETR); //Задание нуля 1
+	MIN[14].config(sym_n,14,0,0,2048,2048,adr += 4,PARAMETR); //Задание нуля 2
 	MIN[15].config(sym_n,15,0,9999,1,1,adr += 4,PARAMETR); //Коэффициент канала 1
 	MIN[16].config(sym_n,16,0,9999,1,1,adr += 4,PARAMETR); //Коэффициент канала 2
 	MIN[17].config(sym_n,17,1,100,1,50,adr += 4,PARAMETR); //Усреднение АЦП канал 1
@@ -535,15 +535,17 @@ bool global::DwnToUp(u16 Value)
 
 void global::itSampleADC(void)
 {
-	static const u16 avrCnt = 50; //Max count average
+	u16 avrCnt[2]; //Max count average
+    avrCnt[0] = MIN[17].pValue; //Max count average TODO Начать отседова)
+	avrCnt[1] = MIN[18].pValue; //Max count average
 	static u8 i = 0; //Inc
 
 	//Calculate
-	if (i >= avrCnt)
+	if (i >=   avrCnt[0])
 	{
 		//Calculate average adc value
-		aADCavr[0] = (aADCBuff[0] / avrCnt);
-		aADCavr[1] = (aADCBuff[1] / avrCnt);
+		aADCavr[0] = (aADCBuff[0] /   avrCnt[0]);
+		aADCavr[1] = (aADCBuff[1] /   avrCnt[1]);
 
 		//Send value to menu items
 		MIN[4].pValue = (float) aADCavr[0];
@@ -608,7 +610,7 @@ void global::itCalcFreq(void)
 			//Расчет рмс
 			rms = sqrtf((float) rmsSum);
 			rms = rms / (float) CntValue;
-			MIN[2].setValue(CntValue);
+			MIN[2].setValue(rms);
 			CntValue = 0;
 			rmsSum = 0;
 
@@ -636,6 +638,7 @@ void global::itCalcFreq(void)
 	else
 	{
 		MIN[6].setValue(0.0);
+		MIN[2].setValue(0.0);
 	}
 
 

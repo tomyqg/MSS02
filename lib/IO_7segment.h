@@ -19,7 +19,7 @@
 /**
  * Numeric code of 7-segment display
  */
-static const u8 num[10]
+static const u8 num[11]
 {       0x3F, //0
 		0x06, //1
 		0x5B, //2
@@ -30,6 +30,7 @@ static const u8 num[10]
 		0x07, //7
 		0x7F, //8
 		0x6F, //9
+		0x00, //empty
 };
 
 /**

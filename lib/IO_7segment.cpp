@@ -174,7 +174,7 @@ void IO_7segment::write(float value)
 	}
 
 	icel = (s16) (value);
-	if ((value - (float)icel) == 0.0)
+	if ((value - (float) icel) == 0.0)
 	{
 		rZero = true;
 	}
@@ -238,10 +238,35 @@ void IO_7segment::write(float value)
 	x10 = (icel / 10) % 10;
 	x1 = (icel % 10);
 
-	DigitWrite(num[x1], point[0], 0);
-	DigitWrite(num[x10], point[1], 1);
-	DigitWrite(num[x100], point[2], 2);
-	DigitWrite(num[x1000], point[3], 3);
+	if (x1000 == 0)
+	{
+		DigitWrite(num[10], point[3], 3);
+	}
+	else
+	{
+		DigitWrite(num[x1000], point[3], 3);
+	}
+
+	if (x1000 == 0 && x100==0)
+	{
+		DigitWrite(num[10], point[3], 3);
+	}
+	else
+	{
+		DigitWrite(num[x100], point[2], 2);
+	}
+
+
+	if (x1000 == 0 && x100==0 && x10 == 0)
+	{
+		DigitWrite(num[10], point[3], 3);
+	}
+	else
+	{
+		DigitWrite(num[x10], point[1], 1);
+	}
+
+DigitWrite(num[x1], point[0], 0);
 
 }
 

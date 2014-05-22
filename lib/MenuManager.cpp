@@ -163,7 +163,7 @@ void MenuManager::Up(bool input)
 				{
 					float x = getPointFactor(pValue);
 
-					if (pValue < group[0].mCurrItem->getHLim())
+					if (pValue + (group[0].mCurrItem->m_decr) < group[0].mCurrItem->getHLim())
 					{
 
 						if (scrollCounter[0] == 1)
@@ -245,7 +245,7 @@ void MenuManager::Down(bool input)
 				{
 					float x = getPointFactor(pValue);
 
-					if (pValue > group[0].mCurrItem->getLLim())
+					if (pValue - (group[0].mCurrItem->m_decr) > group[0].mCurrItem->getLLim())
 					{
 
 						if (scrollCounter[0] == 1)
