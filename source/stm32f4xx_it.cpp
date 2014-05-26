@@ -130,8 +130,8 @@ void TIM4_IRQHandler(void)
 	{
 
 prg.itSampleADC();
-
 prg.itCalcFreq();
+
 		TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
 	}
 

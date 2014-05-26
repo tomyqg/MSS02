@@ -17,14 +17,8 @@ global::global()
 void global::init(void)
 {
 
-
-
-
-
 	initRTC();
-
-
-
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 	Menu.config();
 	Menu.PasswordSp = &SYS[7];
 	Menu.PasswordPv = &SYS[0];
@@ -34,13 +28,13 @@ void global::init(void)
 	Menu.readFlash();
 	Menu.selectGroup(SYS[1].getValue());
 	Menu.selectRoot();
-	mbs_table[301] = (u16*)(0x1FFF7A10);
-	mbs_table[302] = (u16*)(0x1FFF7A12);
-	mbs_table[303] = (u16*)(0x1FFF7A14);
-	mbs_table[304] = (u16*)(0x1FFF7A16);
-	mbs_table[305] = (u16*)(0x1FFF7A18);
-	mbs_table[306] = (u16*)(0x1FFF7A1A);
-	SYS[5].setValue(15);
+	mbs_table[301] = (u16*) (0x1FFF7A10);
+	mbs_table[302] = (u16*) (0x1FFF7A12);
+	mbs_table[303] = (u16*) (0x1FFF7A14);
+	mbs_table[304] = (u16*) (0x1FFF7A16);
+	mbs_table[305] = (u16*) (0x1FFF7A18);
+	mbs_table[306] = (u16*) (0x1FFF7A1A);
+	SYS[5].setValue(16);
 
 	switch ((u32) SYS[4].getValue())
 	{
@@ -110,7 +104,7 @@ void global::init(void)
 //	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 //
 //	NVIC_Init_Structure.NVIC_IRQChannel = TIM2_IRQn;
-//	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
+//	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 5;
 //	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
 //	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 //	NVIC_Init(&NVIC_Init_Structure);
@@ -118,7 +112,7 @@ void global::init(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
 	TimeBaseInit_Structure.TIM_Prescaler = 83;
-	TimeBaseInit_Structure.TIM_Period = 4; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+	TimeBaseInit_Structure.TIM_Period = 9; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
 	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM4, &TimeBaseInit_Structure);
@@ -128,28 +122,29 @@ void global::init(void)
 	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = TIM4_IRQn;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 14;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 4;
 	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
-
-	TimeBaseInit_Structure.TIM_Prescaler = 83;
-	TimeBaseInit_Structure.TIM_Period = 1000000; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
-	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV4;
-	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(TIM5, &TimeBaseInit_Structure);
-	TIM_Cmd(TIM5, ENABLE);
-	TIM_ARRPreloadConfig(TIM5, ENABLE);
-
-	TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
-
-	NVIC_Init_Structure.NVIC_IRQChannel = TIM5_IRQn;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_Init_Structure);
+//
+//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
+//
+//	TimeBaseInit_Structure.TIM_Prescaler = 83;
+//	TimeBaseInit_Structure.TIM_Period = 1000000; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+//	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV4;
+//	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
+//	TIM_TimeBaseInit(TIM5, &TimeBaseInit_Structure);
+//	TIM_Cmd(TIM5, ENABLE);
+//	TIM_ARRPreloadConfig(TIM5, ENABLE);
+//
+//	TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
+//
+//	NVIC_Init_Structure.NVIC_IRQChannel = TIM5_IRQn;
+//	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
+//	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+//	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_Init_Structure);
 
 	//SysTick_Config(SYSTICK_VALUE);
 
@@ -198,8 +193,8 @@ void global::initModbusUsart(void)
 	USART_ITConfig(MODBUS_USART, USART_IT_RXNE, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_USART_IRQN;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 15;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 6;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 1;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 	NVIC_EnableIRQ(MODBUS_USART_IRQN);
@@ -236,8 +231,8 @@ void global::initModbusTimer(void)
 	TIM_ITConfig(MODBUS_TIMER, TIM_IT_Update, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_TIMER_IRQN;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 16;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 6;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 2;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
@@ -248,12 +243,6 @@ void global::cycle(void)
 
 	while (1)
 	{
-
-
-
-
-
-
 
 		profibusDataExchange();
 		changeVisibleItem();
@@ -267,9 +256,10 @@ void global::cycle(void)
 		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 		Menu.Display();
 
-		if (mbs_Slave.act>0){
-			Menu.Flash.writeFloat(mbs_Slave.mbToFlashData.mbAddr*2, mbs_Slave.mbToFlashData.mbValue);
-			mbs_Slave.act=0;
+		if (mbs_Slave.act > 0)
+		{
+			Menu.Flash.writeFloat(mbs_Slave.mbToFlashData.mbAddr * 2, mbs_Slave.mbToFlashData.mbValue);
+			mbs_Slave.act = 0;
 		}
 	}
 
@@ -280,31 +270,31 @@ void global::changeVisibleItem(void)
 
 	static float mem[5];
 
-	switch ((int)SYS[1].getValue())
+	switch ((int) SYS[1].getValue())
 	{
 	case 1.0:
 		if (MIN[1].getValue() != mem[1]) // CREATE comment
 		{
-			mem[1]=MIN[1].getValue();
+			mem[1] = MIN[1].getValue();
 			Menu.selectItemNum(1);
 			Menu.selectRoot();
 		}
 	case 2.0:
 		if (MSY[1].getValue() != mem[2]) // CREATE comment
 		{
-			mem[2]=MSY[1].getValue();
+			mem[2] = MSY[1].getValue();
 			Menu.selectItemNum(2);
 		}
 	case 3.0:
 		if (MDI[1].getValue() != mem[3]) // CREATE comment
 		{
-			mem[3]=MDI[1].getValue();
+			mem[3] = MDI[1].getValue();
 			Menu.selectItemNum(3);
 		}
 	case 4.0:
 		if (MDO[1].getValue() != mem[4]) // CREATE comment
 		{
-			mem[4]=MDO[1].getValue();
+			mem[4] = MDO[1].getValue();
 			Menu.selectItemNum(4);
 		}
 
@@ -314,7 +304,6 @@ void global::changeVisibleItem(void)
 		break;
 	}
 
-
 }
 
 void global::ptrFtoI(float *value, u16 **buff, u16 number)
@@ -323,8 +312,6 @@ void global::ptrFtoI(float *value, u16 **buff, u16 number)
 	buff[number + 1] = buff[number] + 1;
 }
 
-
-
 void global::usrMenuBuild(void)
 {
 
@@ -332,21 +319,20 @@ void global::usrMenuBuild(void)
 
 	u16 adr = 0;
 
-
 	RT[0].config(sym_r, 0, 0, 9999, 1, 0, adr, OUT_VALUE); //Отображаемое значение на экране
 
 	Menu.addRoot(0, &RT[0]);
 	ptrFtoI(&RT[0].pValue, mbs_table, mbsCnt);
 
-	SYS[0].config(sym_C,1,0,9999,1,0,adr += 4,PARAMETR); //Ввод пароля для входа в меню
-	SYS[1].config(sym_C,2,1,4,1,1,adr += 4,PARAMETR); //Тип модуля
-	SYS[2].config(sym_C,3,1,2,1,1,adr += 4,PARAMETR); //Тип протокола
-	SYS[3].config(sym_C,4,0,255,1,1,adr += 4,PARAMETR); //Адрес
-	SYS[4].config(sym_C,5,0,11,1,5,adr += 4,PARAMETR); //Скорость передачи данных
-	SYS[5].config(sym_C,6,0,9999,0,0,adr += 4,OUT_VALUE); //Версия прошивки
-	SYS[6].config(sym_C,7,0,1,1,0,adr += 4,PARAMETR); //Вернуть к заводским настройкам
-	SYS[7].config(sym_C,8,0,9999,1,0,adr += 4,PARAMETR); //Пароль для доступа
-	SYS[8].config(sym_C,9,0,1,1,0,adr += 4,PARAMETR); //Сброс контроллера
+	SYS[0].config(sym_C, 1, 0, 9999, 1, 0, adr += 4, PARAMETR); //Ввод пароля для входа в меню
+	SYS[1].config(sym_C, 2, 1, 4, 1, 1, adr += 4, PARAMETR); //Тип модуля
+	SYS[2].config(sym_C, 3, 1, 2, 1, 1, adr += 4, PARAMETR); //Тип протокола
+	SYS[3].config(sym_C, 4, 0, 255, 1, 1, adr += 4, PARAMETR); //Адрес
+	SYS[4].config(sym_C, 5, 0, 11, 1, 5, adr += 4, PARAMETR); //Скорость передачи данных
+	SYS[5].config(sym_C, 6, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Версия прошивки
+	SYS[6].config(sym_C, 7, 0, 1, 1, 0, adr += 4, PARAMETR); //Вернуть к заводским настройкам
+	SYS[7].config(sym_C, 8, 0, 9999, 1, 0, adr += 4, PARAMETR); //Пароль для доступа
+	SYS[8].config(sym_C, 9, 0, 1, 1, 0, adr += 4, PARAMETR); //Сброс контроллера
 
 	for (u8 i = 0; i < 8; i++)
 	{
@@ -358,46 +344,46 @@ void global::usrMenuBuild(void)
 	Menu.addLast(0, &SYS[8]);
 	ptrFtoI(&SYS[8].pValue, mbs_table, mbsCnt += 2);
 
-	MIN[1].config(sym_n,1,1,8,1,9,adr += 4,PARAMETR); //Отображаемый сигнал на экране
-	MIN[2].config(sym_n,2,0,9999,0,0,adr += 4,OUT_VALUE); //Текущее значение RMS 1
-	MIN[3].config(sym_n,3,0,9999,0,0,adr += 4,OUT_VALUE); //Текущее значение RMS 2
-	MIN[4].config(sym_n,4,0,4096,0,0,adr += 4,OUT_VALUE); //Значение текущее АЦП 1
-	MIN[5].config(sym_n,5,0,4096,0,0,adr += 4,OUT_VALUE); //Значение текущее АЦП 2
-	MIN[6].config(sym_n,6,0,9999,0,0,adr += 4,OUT_VALUE); //Значение текущее частоты 1
-	MIN[7].config(sym_n,7,0,9999,0,0,adr += 4,OUT_VALUE); //Значение текущее частоты 2
-	MIN[8].config(sym_n,8,0,9999,0,0,adr += 4,OUT_VALUE); //Значение текущее косинуса
-	MIN[9].config(sym_n,9,1,2,1,1,adr += 4,PARAMETR); //Тип сигнала переменка/постоянка 1
-	MIN[10].config(sym_n,10,1,2,1,1,adr += 4,PARAMETR); //Тип сигнала переменка/постоянка 2
-	MIN[11].config(sym_n,11,1,99,1,25,adr += 4,PARAMETR); //Количество усреднений данных 1
-	MIN[12].config(sym_n,12,1,99,1,25,adr += 4,PARAMETR); //Количество усреднений данных 2
-	MIN[13].config(sym_n,13,0,0,2048,2048,adr += 4,PARAMETR); //Задание нуля 1
-	MIN[14].config(sym_n,14,0,0,2048,2048,adr += 4,PARAMETR); //Задание нуля 2
-	MIN[15].config(sym_n,15,0,9999,1,1,adr += 4,PARAMETR); //Коэффициент канала 1
-	MIN[16].config(sym_n,16,0,9999,1,1,adr += 4,PARAMETR); //Коэффициент канала 2
-	MIN[17].config(sym_n,17,1,100,1,50,adr += 4,PARAMETR); //Усреднение АЦП канал 1
-	MIN[18].config(sym_n,18,1,100,1,50,adr += 4,PARAMETR); //Усреднение АЦП канал 2
-	MIN[19].config(sym_n,19,1,2,1,1,adr += 4,PARAMETR); //Реверс знак косинуса
-	MIN[20].config(sym_n,20,1,9999,1,500,adr += 4,PARAMETR); //Усреднение значения косинуса
-	MIN[21].config(sym_n,21,1,3,1,1,adr += 4,PARAMETR); //Выход аварии 1 назначение
-	MIN[22].config(sym_n,22,1,2,1,1,adr += 4,PARAMETR); //Инвертирование выхода 1
-	MIN[23].config(sym_n,23,0,9999,1,0,adr += 4,PARAMETR); //Значение уставки минимум 1
-	MIN[24].config(sym_n,24,0,9999,1,1,adr += 4,PARAMETR); //Значение уставки максимум 1
-	MIN[25].config(sym_n,25,0,99,1,5,adr += 4,PARAMETR); //Усреднение аварии 1
-	MIN[26].config(sym_n,26,1,2,1,1,adr += 4,PARAMETR); //Удержание аварии 1
-	MIN[27].config(sym_n,27,0,1,1,0,adr += 4,PARAMETR); //Значение выход 1
-	MIN[28].config(sym_n,28,1,3,1,1,adr += 4,PARAMETR); //Выход аварии 2 назначение
-	MIN[29].config(sym_n,29,1,2,1,1,adr += 4,PARAMETR); //Инвертирование выхода 2
-	MIN[30].config(sym_n,30,0,9999,1,0,adr += 4,PARAMETR); //Значение уставки минимум 2
-	MIN[31].config(sym_n,31,0,9999,1,1,adr += 4,PARAMETR); //Значение уставки максимум 2
-	MIN[32].config(sym_n,32,0,99,1,5,adr += 4,PARAMETR); //Усреднение аварии 2
-	MIN[33].config(sym_n,33,1,2,1,1,adr += 4,PARAMETR); //Удержание аварии 2
-	MIN[34].config(sym_n,34,0,1,1,0,adr += 4,PARAMETR); //Значение выход 2
-	MIN[35].config(sym_n,35,1,2,1,1,adr += 4,PARAMETR); //Дискретный вход 1 настройка
-	MIN[36].config(sym_n,36,0,1,1,0,adr += 4,PARAMETR); //Дискретный вход 1 значение
-	MIN[37].config(sym_n,37,1,2,1,1,adr += 4,PARAMETR); //Дискретный вход 2 настройка
-	MIN[38].config(sym_n,38,0,1,1,0,adr += 4,PARAMETR); //Дискретный вход 2 значение
-	MIN[39].config(sym_n,39,0,0,0,0,adr += 4,PARAMETR); //Резерв
-	MIN[40].config(sym_n,40,0,0,0,0,adr += 4,PARAMETR); //Резерв
+	MIN[1].config(sym_n, 1, 1, 8, 1, 9, adr += 4, PARAMETR); //Отображаемый сигнал на экране
+	MIN[2].config(sym_n, 2, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Текущее значение RMS 1
+	MIN[3].config(sym_n, 3, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Текущее значение RMS 2
+	MIN[4].config(sym_n, 4, 0, 4096, 0, 0, adr += 4, OUT_VALUE); //Значение текущее АЦП 1
+	MIN[5].config(sym_n, 5, 0, 4096, 0, 0, adr += 4, OUT_VALUE); //Значение текущее АЦП 2
+	MIN[6].config(sym_n, 6, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Значение текущее частоты 1
+	MIN[7].config(sym_n, 7, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Значение текущее частоты 2
+	MIN[8].config(sym_n, 8, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Значение текущее косинуса
+	MIN[9].config(sym_n, 9, 1, 2, 1, 1, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 1
+	MIN[10].config(sym_n, 10, 1, 2, 1, 1, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 2
+	MIN[11].config(sym_n, 11, 1, 99, 1, 25, adr += 4, PARAMETR); //Количество усреднений данных 1
+	MIN[12].config(sym_n, 12, 1, 99, 1, 25, adr += 4, PARAMETR); //Количество усреднений данных 2
+	MIN[13].config(sym_n, 13, 0, 0, 2048, 2048, adr += 4, PARAMETR); //Задание нуля 1
+	MIN[14].config(sym_n, 14, 0, 0, 2048, 2048, adr += 4, PARAMETR); //Задание нуля 2
+	MIN[15].config(sym_n, 15, 0, 9999, 1, 1, adr += 4, PARAMETR); //Коэффициент канала 1
+	MIN[16].config(sym_n, 16, 0, 9999, 1, 1, adr += 4, PARAMETR); //Коэффициент канала 2
+	MIN[17].config(sym_n,17,5,50,1,25,adr += 4,PARAMETR); //Усреднение АЦП канал 1
+	MIN[18].config(sym_n,18,5,50,1,25,adr += 4,PARAMETR); //Усреднение АЦП канал 2
+	MIN[19].config(sym_n, 19, 1, 2, 1, 1, adr += 4, PARAMETR); //Реверс знак косинуса
+	MIN[20].config(sym_n, 20, 1, 9999, 1, 500, adr += 4, PARAMETR); //Усреднение значения косинуса
+	MIN[21].config(sym_n, 21, 1, 3, 1, 1, adr += 4, PARAMETR); //Выход аварии 1 назначение
+	MIN[22].config(sym_n, 22, 1, 2, 1, 1, adr += 4, PARAMETR); //Инвертирование выхода 1
+	MIN[23].config(sym_n, 23, 0, 9999, 1, 0, adr += 4, PARAMETR); //Значение уставки минимум 1
+	MIN[24].config(sym_n, 24, 0, 9999, 1, 1, adr += 4, PARAMETR); //Значение уставки максимум 1
+	MIN[25].config(sym_n, 25, 0, 99, 1, 5, adr += 4, PARAMETR); //Усреднение аварии 1
+	MIN[26].config(sym_n, 26, 1, 2, 1, 1, adr += 4, PARAMETR); //Удержание аварии 1
+	MIN[27].config(sym_n, 27, 0, 1, 1, 0, adr += 4, PARAMETR); //Значение выход 1
+	MIN[28].config(sym_n, 28, 1, 3, 1, 1, adr += 4, PARAMETR); //Выход аварии 2 назначение
+	MIN[29].config(sym_n, 29, 1, 2, 1, 1, adr += 4, PARAMETR); //Инвертирование выхода 2
+	MIN[30].config(sym_n, 30, 0, 9999, 1, 0, adr += 4, PARAMETR); //Значение уставки минимум 2
+	MIN[31].config(sym_n, 31, 0, 9999, 1, 1, adr += 4, PARAMETR); //Значение уставки максимум 2
+	MIN[32].config(sym_n, 32, 0, 99, 1, 5, adr += 4, PARAMETR); //Усреднение аварии 2
+	MIN[33].config(sym_n, 33, 1, 2, 1, 1, adr += 4, PARAMETR); //Удержание аварии 2
+	MIN[34].config(sym_n, 34, 0, 1, 1, 0, adr += 4, PARAMETR); //Значение выход 2
+	MIN[35].config(sym_n, 35, 1, 2, 1, 1, adr += 4, PARAMETR); //Дискретный вход 1 настройка
+	MIN[36].config(sym_n, 36, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 1 значение
+	MIN[37].config(sym_n, 37, 1, 2, 1, 1, adr += 4, PARAMETR); //Дискретный вход 2 настройка
+	MIN[38].config(sym_n, 38, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 2 значение
+	MIN[39].config(sym_n, 39, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
+	MIN[40].config(sym_n, 40, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
 
 	Menu.addRoot(1, &MIN[1]);
 	ptrFtoI(&MIN[1].pValue, mbs_table, mbsCnt += 2);
@@ -535,45 +521,72 @@ bool global::DwnToUp(u16 Value)
 
 void global::itSampleADC(void)
 {
-	u16 avrCnt[2]; //Max count average
-    avrCnt[0] = MIN[17].pValue; //Max count average TODO Начать отседова)
-	avrCnt[1] = MIN[18].pValue; //Max count average
-	static u8 i = 0; //Inc
+	static u16 avrCnt[2] =
+	{ 10, 10 }; //Max count average
+	static u8 i[2] =
+	{ 0, 0 }; //Inc
 
-	//Calculate
-	if (i >=   avrCnt[0])
+	//Calculate 1 chanal
+	if (i[0] >= avrCnt[0] )
 	{
-		//Calculate average adc value
-		aADCavr[0] = (aADCBuff[0] /   avrCnt[0]);
-		aADCavr[1] = (aADCBuff[1] /   avrCnt[1]);
 
-		//Send value to menu items
-		MIN[4].pValue = (float) aADCavr[0];
-		MIN[5].pValue = (float) aADCavr[1];
+			//Calculate average adc value
+			aADCavr[0] = (aADCBuff[0] / avrCnt[0]);
+			dataOk = true;
+			//Send value to menu items
+			MIN[4].pValue = (float) aADCavr[0];
 
-		if (ADC1->DR > ZeroOffset + 250 || ADC1->DR < ZeroOffset - 250)
-		{
-			if (SignalOk[0] < 15000)
+			if (ADC1->DR > ZeroOffset + 250 || ADC1->DR < ZeroOffset - 250)
 			{
-				SignalOk[0] += 100;
+				if (SignalOk[0] < 15000)
+				{
+					SignalOk[0] += 100;
+				}
 			}
-		}
 
-		//Reset data
-		i = 1;
-		aADCBuff[0] = 0;
-		aADCBuff[1] = 0;
+			//Reset data
+			i[0] = 1;
+			aADCBuff[0] = 0;
+			avrCnt[0] = (u16) MIN[17].pValue; //Max count average TODO Начать отседова)
+			//Sampling data
+			aADCBuff[0] += ADC1->DR;
 
-		//Sampling data
-		aADCBuff[0] += ADC1->DR;
-		aADCBuff[1] += ADC2->DR;
 	}
 	else //Sampling data
 	{
 		aADCBuff[0] += ADC1->DR;
-		aADCBuff[1] += ADC2->DR;
 
-		i++;
+		i[0]++;
+	}
+
+	//Calculate 2 chanal
+	if (i[1] >= avrCnt[1])
+	{
+
+		//Calculate average adc value
+		aADCavr[1] = (aADCBuff[1] / avrCnt[1]);
+
+		//Send value to menu items
+		MIN[5].pValue = (float) aADCavr[1];
+
+		if (ADC2->DR > ZeroOffset + 250 || ADC2->DR < ZeroOffset - 250)
+		{
+			if (SignalOk[1] < 15000)
+				SignalOk[1] += 100;
+
+		}
+		//Reset data
+		i[1] = 1;
+
+		aADCBuff[1] = 0;
+		avrCnt[1] = (u16) MIN[18].pValue; //Max count average
+		//Sampling data
+		aADCBuff[1] += ADC2->DR;
+	}
+	else //Sampling data
+	{
+		aADCBuff[1] += ADC2->DR;
+		i[1]++;
 	}
 
 }
@@ -592,46 +605,47 @@ void global::itCalcFreq(void)
 	if (SignalOk[0] > 0)
 	{
 
-		if (DwnToUp(aADCavr[0]))
-		{
-
-			//Усреднение текущей частоты
-			if (i >= 10) //
+			if (DwnToUp(aADCavr[0]))
 			{
-				MIN[6].setValue(avrFr / 10);
-				avrFr = 0.0;
-				i = 0;
+
+				//Усреднение текущей частоты
+				if (i >= 10) //
+				{
+					MIN[6].setValue(avrFr / 10);
+					avrFr = 0.0;
+					i = 0;
+				}
+
+				//Расчет частоты
+				//avrFr = avrFr + (1 / ((float) CntValue * 0.0000051));
+				avrFr = avrFr + (1 / ((float) CntValue * 0.00001));
+				i++;
+
+				//Расчет рмс
+				rms = sqrtf((float) rmsSum);
+				rms = rms / (float) CntValue;
+				MIN[2].setValue(rms);
+				CntValue = 0;
+				rmsSum = 0;
+
 			}
-
-			//Расчет частоты
-			avrFr = avrFr + (1 / ((float) CntValue * 0.0000051));
-			i++;
-
-			//Расчет рмс
-			rms = sqrtf((float) rmsSum);
-			rms = rms / (float) CntValue;
-			MIN[2].setValue(rms);
-			CntValue = 0;
-			rmsSum = 0;
-
-		}
-		else
-		{
-			CntValue++;
-
-			if (aADCavr[0] >= ZeroOffset)
+			else
 			{
-				tmp = aADCavr[0] - ZeroOffset;
+				CntValue++;
+
+				if (aADCavr[0] >= ZeroOffset)
+				{
+					tmp = aADCavr[0] - ZeroOffset;
+				}
+
+				if (aADCavr[0] < ZeroOffset)
+				{
+					tmp = ZeroOffset - aADCavr[0];
+				}
+
+				rmsSum += tmp * tmp;
+
 			}
-
-			if (aADCavr[0] < ZeroOffset)
-			{
-				tmp = ZeroOffset - aADCavr[0];
-			}
-
-			rmsSum += tmp * tmp;
-
-		}
 
 		SignalOk[0]--;
 	}
@@ -641,6 +655,7 @@ void global::itCalcFreq(void)
 		MIN[2].setValue(0.0);
 	}
 
+	dataOk = false;
 
 }
 

@@ -30,6 +30,7 @@ public:
 	u8 UART_ADDR;
 
 	u16 SignalOk[2];
+	bool dataOk;
 
 	MenuManager Menu;
 
