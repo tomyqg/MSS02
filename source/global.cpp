@@ -36,6 +36,9 @@ void global::init(void)
 	mbs_table[306] = (u16*) (0x1FFF7A1A);
 	SYS[5].setValue(16);
 
+
+oMin.init(MIN);
+
 	switch ((u32) SYS[4].getValue())
 	{
 	case 0:
@@ -127,24 +130,23 @@ void global::init(void)
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
-//
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
-//
-//	TimeBaseInit_Structure.TIM_Prescaler = 83;
-//	TimeBaseInit_Structure.TIM_Period = 1000000; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
-//	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV4;
-//	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
-//	TIM_TimeBaseInit(TIM5, &TimeBaseInit_Structure);
-//	TIM_Cmd(TIM5, ENABLE);
-//	TIM_ARRPreloadConfig(TIM5, ENABLE);
-//
-//	TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
-//
-//	NVIC_Init_Structure.NVIC_IRQChannel = TIM5_IRQn;
-//	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
-//	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
-//	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
-//	NVIC_Init(&NVIC_Init_Structure);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
+
+	TimeBaseInit_Structure.TIM_Prescaler = 83;
+	TimeBaseInit_Structure.TIM_Period = 1000000; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV4;
+	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM5, &TimeBaseInit_Structure);
+	TIM_Cmd(TIM5, ENABLE);
+	TIM_ARRPreloadConfig(TIM5, ENABLE);
+
+	TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
+
+	NVIC_Init_Structure.NVIC_IRQChannel = TIM5_IRQn;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 10;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_Init_Structure);
 
 	//SysTick_Config(SYSTICK_VALUE);
 
@@ -254,6 +256,23 @@ void global::cycle(void)
 		Menu.Down(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
 		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
+
+		oMin.ZeroOffset[0] = (u16) (MIN[13].pValue);
+		oMin.ZeroOffset[1] = (u16) (MIN[14].pValue);
+
+		oMin.Ch1_Adc.MaxAvrCount = (u16) MIN[17].pValue; //Max count average
+		oMin.Ch2_Adc.MaxAvrCount = (u16) MIN[18].pValue; //Max count average
+
+		oMin.Ch1_FrRms.cntFreqMax = (u16) MIN[20].getValue();
+		oMin.Ch2_FrRms.cntFreqMax = (u16) MIN[20].getValue();
+
+
+		oMin.Ch1_Adc.sendToItem(MIN[4]);
+		oMin.Ch2_Adc.sendToItem(MIN[5]);
+
+		oMin.Ch1_FrRms.sendToItem(MIN[6], MIN[2]);
+		oMin.Ch2_FrRms.sendToItem(MIN[7], MIN[3]);
+
 		Menu.Display();
 
 		if (mbs_Slave.act > 0)
@@ -360,8 +379,8 @@ void global::usrMenuBuild(void)
 	MIN[14].config(sym_n, 14, 0, 0, 2048, 2048, adr += 4, PARAMETR); //Задание нуля 2
 	MIN[15].config(sym_n, 15, 0, 9999, 1, 1, adr += 4, PARAMETR); //Коэффициент канала 1
 	MIN[16].config(sym_n, 16, 0, 9999, 1, 1, adr += 4, PARAMETR); //Коэффициент канала 2
-	MIN[17].config(sym_n,17,5,50,1,25,adr += 4,PARAMETR); //Усреднение АЦП канал 1
-	MIN[18].config(sym_n,18,5,50,1,25,adr += 4,PARAMETR); //Усреднение АЦП канал 2
+	MIN[17].config(sym_n, 17, 5, 50, 1, 25, adr += 4, PARAMETR); //Усреднение АЦП канал 1
+	MIN[18].config(sym_n, 18, 5, 50, 1, 25, adr += 4, PARAMETR); //Усреднение АЦП канал 2
 	MIN[19].config(sym_n, 19, 1, 2, 1, 1, adr += 4, PARAMETR); //Реверс знак косинуса
 	MIN[20].config(sym_n, 20, 1, 9999, 1, 500, adr += 4, PARAMETR); //Усреднение значения косинуса
 	MIN[21].config(sym_n, 21, 1, 3, 1, 1, adr += 4, PARAMETR); //Выход аварии 1 назначение
@@ -490,172 +509,15 @@ void global::usrMenuBuild(void)
 
 }
 
-bool global::DwnToUp(u16 Value)
-{
-	static u16 PlusHyst = 15;
-	static u16 MinusHyst = 15;
-	static u8 mCurrPos = 0; // 0 = In Minus phase, 1 = In Plus phase
 
-	u16 ZeroOffset = (u16) MIN[13].getValue();
-	if (Value > ZeroOffset + PlusHyst)
-	{
-		if (mCurrPos == 0)
-		{
-			GPIOC->ODR ^= GPIO_Pin_2;
-
-			mCurrPos = 1;
-			return true;
-		}
-		mCurrPos = 1;
-
-	}
-
-	if (Value < ZeroOffset - MinusHyst)
-	{
-		mCurrPos = 0;
-	}
-
-	return false;
-
-}
 
 void global::itSampleADC(void)
 {
-	static u16 avrCnt[2] =
-	{ 10, 10 }; //Max count average
-	static u8 i[2] =
-	{ 0, 0 }; //Inc
-
-	//Calculate 1 chanal
-	if (i[0] >= avrCnt[0] )
-	{
-
-			//Calculate average adc value
-			aADCavr[0] = (aADCBuff[0] / avrCnt[0]);
-			dataOk = true;
-			//Send value to menu items
-			MIN[4].pValue = (float) aADCavr[0];
-
-			if (ADC1->DR > ZeroOffset + 250 || ADC1->DR < ZeroOffset - 250)
-			{
-				if (SignalOk[0] < 15000)
-				{
-					SignalOk[0] += 100;
-				}
-			}
-
-			//Reset data
-			i[0] = 1;
-			aADCBuff[0] = 0;
-			avrCnt[0] = (u16) MIN[17].pValue; //Max count average TODO Начать отседова)
-			//Sampling data
-			aADCBuff[0] += ADC1->DR;
-
-	}
-	else //Sampling data
-	{
-		aADCBuff[0] += ADC1->DR;
-
-		i[0]++;
-	}
-
-	//Calculate 2 chanal
-	if (i[1] >= avrCnt[1])
-	{
-
-		//Calculate average adc value
-		aADCavr[1] = (aADCBuff[1] / avrCnt[1]);
-
-		//Send value to menu items
-		MIN[5].pValue = (float) aADCavr[1];
-
-		if (ADC2->DR > ZeroOffset + 250 || ADC2->DR < ZeroOffset - 250)
-		{
-			if (SignalOk[1] < 15000)
-				SignalOk[1] += 100;
-
-		}
-		//Reset data
-		i[1] = 1;
-
-		aADCBuff[1] = 0;
-		avrCnt[1] = (u16) MIN[18].pValue; //Max count average
-		//Sampling data
-		aADCBuff[1] += ADC2->DR;
-	}
-	else //Sampling data
-	{
-		aADCBuff[1] += ADC2->DR;
-		i[1]++;
-	}
-
+oMin.Calculate();
 }
 
 void global::itCalcFreq(void)
 {
-
-	static u32 CntValue = 0;
-	static u32 rmsSum = 0;
-	static u16 tmp = 0;
-	static float avrFr = 0.0;
-	static u8 i = 0;
-
-	ZeroOffset = (u16) MIN[13].getValue();
-
-	if (SignalOk[0] > 0)
-	{
-
-			if (DwnToUp(aADCavr[0]))
-			{
-
-				//Усреднение текущей частоты
-				if (i >= 10) //
-				{
-					MIN[6].setValue(avrFr / 10);
-					avrFr = 0.0;
-					i = 0;
-				}
-
-				//Расчет частоты
-				//avrFr = avrFr + (1 / ((float) CntValue * 0.0000051));
-				avrFr = avrFr + (1 / ((float) CntValue * 0.00001));
-				i++;
-
-				//Расчет рмс
-				rms = sqrtf((float) rmsSum);
-				rms = rms / (float) CntValue;
-				MIN[2].setValue(rms);
-				CntValue = 0;
-				rmsSum = 0;
-
-			}
-			else
-			{
-				CntValue++;
-
-				if (aADCavr[0] >= ZeroOffset)
-				{
-					tmp = aADCavr[0] - ZeroOffset;
-				}
-
-				if (aADCavr[0] < ZeroOffset)
-				{
-					tmp = ZeroOffset - aADCavr[0];
-				}
-
-				rmsSum += tmp * tmp;
-
-			}
-
-		SignalOk[0]--;
-	}
-	else
-	{
-		MIN[6].setValue(0.0);
-		MIN[2].setValue(0.0);
-	}
-
-	dataOk = false;
 
 }
 
@@ -795,4 +657,7 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	ADC_SoftwareStartConv(ADC1);
 
 }
+
+
+
 

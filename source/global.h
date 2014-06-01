@@ -11,7 +11,7 @@
 
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
-
+#include "cl_Min.h"
 class global
 {
 public:
@@ -22,17 +22,18 @@ public:
 	void usrMenuBuild(void);
 	void itSampleADC(void);
 	void itCalcFreq(void);
-	bool DwnToUp(u16 Value);
+
 	void gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash);
 	void initModbusUsart(void);
 	void initModbusTimer(void);
 	u32 UART_SPEED;
 	u8 UART_ADDR;
+	u8 mCurPos;
 
-	u16 SignalOk[2];
-	bool dataOk;
+
 
 	MenuManager Menu;
+	cl_Min oMin;
 
 	void changeVisibleItem(void);
 	MenuItem RT[1]; //IO item
@@ -45,11 +46,14 @@ public:
 	modbusSlave mbs_Slave; //object mbSlave
 	u16 *mbs_table[BUFF_SIZE]; //modbus table
 
-	u16 ZeroOffset = 0;
-	uint16_t aADCavr[4];
-	uint32_t aADCBuff[4];
-	u16 adcAvrCnt = 0; // Averaging count
-	float rms;
+
+
+
+
+
+
+
+
 
 	u8 profibus_out_table[OUTPUT_DATA_SIZE];
 

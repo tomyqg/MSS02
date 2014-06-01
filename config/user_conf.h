@@ -23,8 +23,11 @@
 
 #include "main.h"
 
+#include "cl_Adc.h"
+#include "cl_FrRms.h"
 
 
+//#include "cl_Min.h"
 
 #ifndef NULL
 #define NULL 0
