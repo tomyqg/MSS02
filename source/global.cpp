@@ -34,10 +34,9 @@ void global::init(void)
 	mbs_table[304] = (u16*) (0x1FFF7A16);
 	mbs_table[305] = (u16*) (0x1FFF7A18);
 	mbs_table[306] = (u16*) (0x1FFF7A1A);
-	SYS[5].setValue(16);
+	SYS[5].setValue(19);
 
-
-oMin.init(MIN);
+	oMin.init(MIN);
 
 	switch ((u32) SYS[4].getValue())
 	{
@@ -248,7 +247,7 @@ void global::cycle(void)
 
 		profibusDataExchange();
 		changeVisibleItem();
-		Menu.changeItem(MIN[13], MIN[4]);
+
 		Menu.setDefaultValue(SYS[6].getValue());
 		Menu.selectGroup(SYS[1].getValue());
 		Menu.systemRestart(SYS[8]);
@@ -257,22 +256,46 @@ void global::cycle(void)
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
 		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 
-		oMin.ZeroOffset[0] = (u16) (MIN[13].pValue);
-		oMin.ZeroOffset[1] = (u16) (MIN[14].pValue);
+		if (cycle_cnt > 25)
+		{
+			cycle_cnt=0;
+			Menu.changeItem(MIN[13], MIN[4]);
+			Menu.changeItem(MIN[14], MIN[5]);
 
-		oMin.Ch1_Adc.MaxAvrCount = (u16) MIN[17].pValue; //Max count average
-		oMin.Ch2_Adc.MaxAvrCount = (u16) MIN[18].pValue; //Max count average
+			oMin.Ch1_FrRms.cntRmsMax = (u16) (MIN[11].pValue);
+			oMin.Ch2_FrRms.cntRmsMax = (u16) (MIN[12].pValue);
 
-		oMin.Ch1_FrRms.cntFreqMax = (u16) MIN[20].getValue();
-		oMin.Ch2_FrRms.cntFreqMax = (u16) MIN[20].getValue();
+			oMin.ZeroOffset[0] = (u16) (MIN[13].pValue);
+			oMin.ZeroOffset[1] = (u16) (MIN[14].pValue);
 
+			oMin.Ch1_FrRms.RmsFactor = (MIN[15].pValue);
+			oMin.Ch2_FrRms.RmsFactor = (MIN[16].pValue);
 
-		oMin.Ch1_Adc.sendToItem(MIN[4]);
-		oMin.Ch2_Adc.sendToItem(MIN[5]);
+			oMin.Ch1_Adc.MaxAvrCount = (u16) MIN[17].pValue; //Max count average
+			oMin.Ch2_Adc.MaxAvrCount = (u16) MIN[18].pValue; //Max count average
 
-		oMin.Ch1_FrRms.sendToItem(MIN[6], MIN[2]);
-		oMin.Ch2_FrRms.sendToItem(MIN[7], MIN[3]);
+			oMin.Ch1_FrRms.cntFreqMax = (u16) MIN[20].getValue();
+			oMin.Ch2_FrRms.cntFreqMax = (u16) MIN[20].getValue();
 
+			oMin.AC_DC[0] = (u8) MIN[9].getValue();
+			oMin.AC_DC[1] = (u8) MIN[10].getValue();
+
+			oMin.Ch1_Alarm.AcDc = MIN[9].getValue();
+			oMin.Ch1_Alarm.SelectMode = (u8) MIN[21].getValue();
+			oMin.Ch1_Alarm.invOut = MIN[22].getValue();
+			oMin.Ch1_Alarm.minValue = MIN[23].getValue();
+			oMin.Ch1_Alarm.maxValue = MIN[24].getValue();
+			oMin.Ch1_Alarm.avrAl = MIN[25].getValue();
+			oMin.Ch1_Alarm.setOut = MIN[26].getValue();
+
+			oMin.Ch1_Adc.sendToItem(MIN[4]);
+			oMin.Ch2_Adc.sendToItem(MIN[5]);
+
+			oMin.Ch1_FrRms.sendToItem(MIN[6], MIN[2]);
+			oMin.Ch2_FrRms.sendToItem(MIN[7], MIN[3]);
+		}
+
+		cycle_cnt++;
 		Menu.Display();
 
 		if (mbs_Slave.act > 0)
@@ -371,8 +394,8 @@ void global::usrMenuBuild(void)
 	MIN[6].config(sym_n, 6, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Значение текущее частоты 1
 	MIN[7].config(sym_n, 7, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Значение текущее частоты 2
 	MIN[8].config(sym_n, 8, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Значение текущее косинуса
-	MIN[9].config(sym_n, 9, 1, 2, 1, 1, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 1
-	MIN[10].config(sym_n, 10, 1, 2, 1, 1, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 2
+	MIN[9].config(sym_n, 9, 0, 1, 1, 0, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 1
+	MIN[10].config(sym_n, 10, 0, 1, 1, 0, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 2
 	MIN[11].config(sym_n, 11, 1, 99, 1, 25, adr += 4, PARAMETR); //Количество усреднений данных 1
 	MIN[12].config(sym_n, 12, 1, 99, 1, 25, adr += 4, PARAMETR); //Количество усреднений данных 2
 	MIN[13].config(sym_n, 13, 0, 0, 2048, 2048, adr += 4, PARAMETR); //Задание нуля 1
@@ -509,11 +532,9 @@ void global::usrMenuBuild(void)
 
 }
 
-
-
 void global::itSampleADC(void)
 {
-oMin.Calculate();
+	oMin.Calculate();
 }
 
 void global::itCalcFreq(void)
@@ -657,7 +678,4 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	ADC_SoftwareStartConv(ADC1);
 
 }
-
-
-
 

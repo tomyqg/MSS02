@@ -238,7 +238,7 @@ void IO_7segment::write(float value)
 	x10 = (icel / 10) % 10;
 	x1 = (icel % 10);
 
-	if (x1000 == 0)
+	if (x1000 == 0 && !point[3] )
 	{
 		DigitWrite(num[10], point[3], 3);
 	}

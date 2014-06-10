@@ -12,7 +12,7 @@ FrRms::FrRms()
 {
 }
 
-void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr,u16 *iZeroOffset)
+void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset, u8 *iAcDc)
 {
 	dataOk = idDataOk;
 	SigOk = iSigOk;
@@ -21,10 +21,12 @@ void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr,u16 *iZeroOffset)
 	factor = 0.00001001;
 	cntFreq = 0;
 	cntAvr = 0;
-
+	cntFreq = 0;
+	RmsFactor = 0.0;
+	AcDc = iAcDc;
 }
 
-void FrRms::calculate(bool DtU)
+void FrRms::calculateAC(bool DtU)
 {
 	if (*SigOk > 0)
 	{
@@ -32,21 +34,34 @@ void FrRms::calculate(bool DtU)
 		if (DtU)
 		{
 
-			//Усреднение текущей частоты
-			if (cntFreq >= cntFreqMax) //
-			{
-				avrFr = tAvrFr / cntFreqMax;
-				tAvrFr = 0.0;
-				cntFreq = 0;
-			}
-
 			//Расчет частоты
 			tAvrFr = tAvrFr + (1 / ((float) cntCalc * factor));
 			cntFreq++;
 
+			//Усреднение текущей частоты
+			if (cntFreq >= cntFreqMax) //
+			{
+				if (cntEnOutValue > FilterOutValue)
+					avrFr = tAvrFr / cntFreqMax;
+
+				tAvrFr = 0.0;
+				cntFreq = 0;
+			}
+
 			//Расчет рмс
-			rms = sqrtf((float) rmsSum);
-			rms = rms / (float) cntCalc;
+			tRms = sqrtf((((float) rmsSum) *2) / ((float) cntCalc));
+			tRms *= RmsFactor;
+			cntRms++;
+			tAvrRms += tRms;
+
+			if (cntRms >= cntRmsMax) //
+			{
+				if (cntEnOutValue > FilterOutValue)
+					avrRms = tAvrRms / cntRmsMax;
+
+				tAvrRms = 0.0;
+				cntRms = 0;
+			}
 
 			cntCalc = 0;
 			rmsSum = 0;
@@ -66,7 +81,7 @@ void FrRms::calculate(bool DtU)
 				tmp = *ZeroOffset - *ADCavr;
 			}
 
-			rmsSum += tmp * tmp;
+			rmsSum += (tmp * tmp)/2;
 
 		}
 
@@ -75,17 +90,86 @@ void FrRms::calculate(bool DtU)
 	else
 	{
 		avrFr = 0.0;
-		rms = 0.0;
+		avrRms = 0.0;
+		tRms = 0.0;
+		cntEnOutValue = 0;
 	}
 	*dataOk = false;
 
+	if (cntEnOutValue <= FilterOutValue)
+		cntEnOutValue++;
+
 }
 
-void FrRms::sendToItem(MenuItem &Freq, MenuItem &Rms)
+void FrRms::calculateDC()
+{
+	if (*SigOk > 0)
+	{
+
+		if (DcCounter > 1999)
+		{
+
+			//Расчет рмс
+			tRms = sqrtf(((float) rmsSum) / ((float) cntCalc));
+			tRms *= RmsFactor * 1.414;
+			cntRms++;
+			tAvrRms += tRms;
+
+			if (cntRms >= cntRmsMax) //
+			{
+				if (cntEnOutValue > FilterOutValue)
+					avrRms = tAvrRms / cntRmsMax;
+
+				tAvrRms = 0.0;
+				cntRms = 0;
+			}
+			tAvrFr = 0.0;
+			cntFreq = 0;
+			cntCalc = 0;
+			rmsSum = 0;
+			DcCounter = 1;
+
+		}
+		else
+		{
+			cntCalc++;
+
+			if (*ADCavr >= *ZeroOffset)
+			{
+				tmp = *ADCavr - *ZeroOffset;
+			}
+
+			if (*ADCavr < *ZeroOffset)
+			{
+				tmp = *ZeroOffset - *ADCavr;
+			}
+
+			rmsSum += tmp * tmp;
+			DcCounter++;
+
+		}
+
+		*SigOk = *SigOk - 1;
+	}
+	else
+	{
+		avrFr = 0.0;
+		avrRms = 0.0;
+		tRms = 0.0;
+		cntEnOutValue = 0;
+	}
+	*dataOk = false;
+
+	if (cntEnOutValue <= FilterOutValue)
+		cntEnOutValue++;
+
+}
+
+void FrRms::sendToItem(MenuItem &iFreq, MenuItem &iRms)
 {
 
-	Freq.pValue = avrFr;
-	Rms.pValue = rms;
+	iFreq.pValue = avrFr;
+	iRms.pValue = avrRms;
 
 }
 

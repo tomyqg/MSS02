@@ -30,7 +30,7 @@ public:
 	u8 UART_ADDR;
 	u8 mCurPos;
 
-
+u16 cycle_cnt;
 
 	MenuManager Menu;
 	cl_Min oMin;
