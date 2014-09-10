@@ -23,7 +23,7 @@ public:
 	void Calculate();
 
 	u8 mCurPos[2];
-
+	Averaging AvCos;
 
 	bool SignaType[2]; //0=DC, 1 = DC;
 
@@ -45,12 +45,17 @@ public:
 	cl_Alarm Ch1_Alarm;
 	cl_Alarm Ch2_Alarm;
 
+	GPIO_TypeDef *inGpioPort;
+	uint16_t inGpioPin;
+	bool inputValue;
+	bool inputReverse;
+
+
 	u16 cntCos;
-u16 cntAvrCos;
 	float cos;
 	float tcos;
 	float AvrCos;
-	float SumCos;
+
 
 };
 

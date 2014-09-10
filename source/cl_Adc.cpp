@@ -32,7 +32,7 @@ void AdcX::sample()
 		*ADCavr = (ADCBuff / MaxAvrCount);
 		*dataOk = true;
 
-		if (ADCx->DR > *ZeroOffset + 33 || ADCx->DR < *ZeroOffset - 33)
+		if (ADCx->DR > (*ZeroOffset + 33) || ADCx->DR < (*ZeroOffset - 33))
 		{
 			if (*SigOk < 15000)
 			{

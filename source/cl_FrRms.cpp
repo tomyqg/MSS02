@@ -46,8 +46,7 @@ void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset)
 	RmsFactor = 0.0;
 
 
-	AvFreq.setMaxCount(50); //TODO delete constant
-	AvRms.setMaxCount(50);
+
 }
 
 void FrRms::calculateAC(bool DtU)

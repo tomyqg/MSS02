@@ -37,8 +37,6 @@ void global::init(void)
 	mbs_table[305] = (u16*) (0x1FFF7A18);
 	mbs_table[306] = (u16*) (0x1FFF7A1A);
 
-
-
 	oMin.Ch1_FrRms.AvValueFreq = (u16) (MIN[11].pValue);
 	oMin.Ch2_FrRms.AvValueFreq = (u16) (MIN[12].pValue);
 	oMin.Ch1_FrRms.AvValueRms = (u16) MIN[20].getValue();
@@ -154,8 +152,6 @@ void global::init(void)
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
-
-
 }
 
 void global::initModbusUsart(void)
@@ -264,11 +260,9 @@ void global::cycle(void)
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
 		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 
-
-
-
 		if (cycle_cnt > 50)
 		{
+
 			SYS[5].setValue(swVersion);
 
 			MIN[8].pValue = oMin.AvrCos;
@@ -276,8 +270,6 @@ void global::cycle(void)
 			cycle_cnt = 0;
 			Menu.changeItem(MIN[13], MIN[4]);
 			Menu.changeItem(MIN[14], MIN[5]);
-
-
 
 			oMin.ZeroOffset[0] = (u16) (MIN[13].pValue);
 			oMin.ZeroOffset[1] = (u16) (MIN[14].pValue);
@@ -291,13 +283,21 @@ void global::cycle(void)
 			oMin.Ch1_Adc.MaxAvrCount = (u16) MIN[17].pValue; //Max count average
 			oMin.Ch2_Adc.MaxAvrCount = (u16) MIN[18].pValue; //Max count average
 
-			oMin.Ch1_FrRms.AvValueRms = (u16) MIN[20].getValue();
+			oMin.Ch1_FrRms.AvValueRms = (u16) (MIN[11].pValue);
+			oMin.Ch2_FrRms.AvValueRms = (u16) (MIN[12].pValue);
 
+			oMin.Ch1_FrRms.AvRms.setMaxCount(oMin.Ch1_FrRms.AvValueRms);
+			oMin.Ch2_FrRms.AvRms.setMaxCount(oMin.Ch2_FrRms.AvValueRms);
+
+			oMin.Ch1_FrRms.AvFreq.setMaxCount(50);
+			oMin.Ch2_FrRms.AvFreq.setMaxCount(50);
+
+			oMin.AvCos.setMaxCount((u16) MIN[20].getValue());
 
 			oMin.AC_DC[0] = (u8) MIN[9].getValue();
 			oMin.AC_DC[1] = (u8) MIN[10].getValue();
 
-			oMin.Ch1_Alarm.AcDc =  (u8)MIN[9].getValue();
+			oMin.Ch1_Alarm.AcDc = (u8) MIN[9].getValue();
 			oMin.Ch1_Alarm.SelectMode = (u8) MIN[21].getValue();
 			oMin.Ch1_Alarm.invOut = (u8) MIN[22].getValue();
 			oMin.Ch1_Alarm.minValue = MIN[23].getValue();
@@ -336,10 +336,13 @@ void global::cycle(void)
 
 			oMin.Ch1_FrRms.sendToItem(MIN[6], MIN[2]);
 			oMin.Ch2_FrRms.sendToItem(MIN[7], MIN[3]);
+
+			oMin.inputReverse = (bool) MIN[35].getValue();
+			MIN[36].setValue((float) oMin.inputValue);
+
 		}
 
 		cycle_cnt++;
-
 
 		if (mbs_Slave.act > 0)
 		{
@@ -441,15 +444,15 @@ void global::usrMenuBuild(void)
 	MIN[8].config(sym_n, 8, 0, 9999, 0, 0, adr += 4, OUT_VALUE); //Значение текущее косинуса
 	MIN[9].config(sym_n, 9, 0, 1, 1, 0, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 1
 	MIN[10].config(sym_n, 10, 0, 1, 1, 0, adr += 4, PARAMETR); //Тип сигнала переменка/постоянка 2
-	MIN[11].config(sym_n, 11, 1, 99, 1, 25, adr += 4, PARAMETR); //Количество усреднений данных 1
-	MIN[12].config(sym_n, 12, 1, 99, 1, 25, adr += 4, PARAMETR); //Количество усреднений данных 2
+	MIN[11].config(sym_n, 11, 1, 99, 1, 15, adr += 4, PARAMETR); //Количество усреднений данных 1
+	MIN[12].config(sym_n, 12, 1, 99, 1, 15, adr += 4, PARAMETR); //Количество усреднений данных 2
 	MIN[13].config(sym_n, 13, 0, 0, 2048, 2048, adr += 4, PARAMETR); //Задание нуля 1
 	MIN[14].config(sym_n, 14, 0, 0, 2048, 2048, adr += 4, PARAMETR); //Задание нуля 2
 	MIN[15].config(sym_n, 15, 0, 9999, 1, 1, adr += 4, PARAMETR); //Коэффициент канала 1
 	MIN[16].config(sym_n, 16, 0, 9999, 1, 1, adr += 4, PARAMETR); //Коэффициент канала 2
-	MIN[17].config(sym_n, 17, 5, 50, 1, 25, adr += 4, PARAMETR); //Усреднение АЦП канал 1
-	MIN[18].config(sym_n, 18, 5, 50, 1, 25, adr += 4, PARAMETR); //Усреднение АЦП канал 2
-	MIN[19].config(sym_n, 19, 0, 1, 1, 0, adr += 4, PARAMETR); //Реверс знак косинуса
+	MIN[17].config(sym_n, 17, 5, 50, 1, 15, adr += 4, PARAMETR); //Усреднение АЦП канал 1
+	MIN[18].config(sym_n, 18, 5, 50, 1, 15, adr += 4, PARAMETR); //Усреднение АЦП канал 2
+	MIN[19].config(sym_n, 19, 0, 2, 1, 0, adr += 4, PARAMETR); //Режим измерения косинуса
 	MIN[20].config(sym_n, 20, 1, 9999, 1, 500, adr += 4, PARAMETR); //Усреднение значения косинуса
 	MIN[21].config(sym_n, 21, 1, 4, 1, 1, adr += 4, PARAMETR); //Выход аварии 1 назначение
 	MIN[22].config(sym_n, 22, 0, 1, 1, 0, adr += 4, PARAMETR); //Инвертирование выхода 1
@@ -462,13 +465,13 @@ void global::usrMenuBuild(void)
 	MIN[29].config(sym_n, 29, 0, 1, 1, 0, adr += 4, PARAMETR); //Инвертирование выхода 2
 	MIN[30].config(sym_n, 30, -9999, 9999, 1, 0, adr += 4, PARAMETR); //Значение уставки минимум 2
 	MIN[31].config(sym_n, 31, -9999, 9999, 1, 1, adr += 4, PARAMETR); //Значение уставки максимум 2
-	MIN[32].config(sym_n, 32, 0, 99, 1, 5, adr += 4, PARAMETR); //Усреднение аварии 2
+	MIN[32].config(sym_n, 32, 0, 9999, 1, 50, adr += 4, PARAMETR); //Усреднение аварии 2
 	MIN[33].config(sym_n, 33, 0, 1, 1, 0, adr += 4, PARAMETR); //Удержание аварии 2
 	MIN[34].config(sym_n, 34, 0, 1, 1, 0, adr += 4, PARAMETR); //Значение выход 2
-	MIN[35].config(sym_n, 35, 1, 2, 1, 1, adr += 4, PARAMETR); //Дискретный вход 1 настройка
+	MIN[35].config(sym_n, 35, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 1 настройка
 	MIN[36].config(sym_n, 36, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 1 значение
-	MIN[37].config(sym_n, 37, 1, 2, 1, 1, adr += 4, PARAMETR); //Дискретный вход 2 настройка
-	MIN[38].config(sym_n, 38, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 2 значение
+	MIN[37].config(sym_n, 37, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
+	MIN[38].config(sym_n, 38, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
 	MIN[39].config(sym_n, 39, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
 	MIN[40].config(sym_n, 40, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
 
@@ -699,6 +702,13 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	ADC_CommonInitStruct.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
 	ADC_CommonInitStruct.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
 	ADC_CommonInit(&ADC_CommonInitStruct);
+
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
 
 	//ADC1
 	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;

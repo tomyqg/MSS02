@@ -10,48 +10,64 @@
 
 Averaging::Averaging()
 {
-	maxCount = 100;
+	maxCount = 0;
 	countValue = 0;
-	arr = 0;
-	u16 Valid=0;
+	//arr = 0;
+	//vArr.resize(10);
+
 }
 
 void Averaging::setMaxCount(u16 Value)
 {
-	maxCount = Value;
-	arr = new float[Value]; // выделить память под стек
+
+	if ((Value != maxCount) && (Value > 0))
+	{
+		countValue = maxCount;
+		maxCount = Value;
+		vArr.resize(maxCount);
+	}
+	else
+	{
+
+	}
+
+	//arr = new float[Value]; // выделить память под стек
 }
 
 float Averaging::avr(float Value)
 {
 	float tAvr = 0.f;
-	if (countValue >= maxCount - 1)
+	if (maxCount)
 	{
-
-		for (u16 i = maxCount - 1; i > 0; i--)
+		if (countValue >= maxCount - 1)
 		{
-			tAvr += arr[i];
-			arr[i] = arr[i - 1];
 
-		}
-		arr[0] = Value;
+			for (u16 i = maxCount - 1; i > 0; i--)
+			{
+				tAvr += vArr[i];
+				vArr[i] = vArr[i - 1];
 
-		if (Valid > maxCount)
-		{
-			return tAvr / (maxCount - 1);\
+			}
+			vArr[0] = Value;
+
+			if (Valid > maxCount)
+			{
+				return tAvr / (maxCount - 1);\
+
+			}
+			else
+			{
+				Valid++;
+				return 0.0f;
+			}
 
 		}
 		else
 		{
-			Valid++;
+			vArr[countValue] = maxCount;
+			countValue++;
 			return 0.0f;
 		}
-
 	}
-	else
-	{
-		arr[countValue] = maxCount;
-		countValue++;
-		return 0.0f;
-	}
+	return 0.0f;
 }

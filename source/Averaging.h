@@ -10,7 +10,7 @@
 #define AVERAGING_H_
 
 #include "stm32f4xx_conf.h"
-
+#include <vector>
 
 class Averaging
 {
@@ -23,8 +23,8 @@ public:
 	u16 maxCount;
 	u16 countValue;
 	u16 Valid;
-	float *arr;
-
+//	float *arr;
+	std::vector <float> vArr;
 
 };
 
