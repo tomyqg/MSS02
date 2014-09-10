@@ -247,9 +247,9 @@ void IO_7segment::write(float value)
 		DigitWrite(num[x1000], point[3], 3);
 	}
 
-	if (x1000 == 0 && x100==0)
+	if (x1000 == 0 && x100==0 && !point[3])
 	{
-		DigitWrite(num[10], point[3], 3);
+		DigitWrite(num[10], point[2], 2);
 	}
 	else
 	{
@@ -257,9 +257,9 @@ void IO_7segment::write(float value)
 	}
 
 
-	if (x1000 == 0 && x100==0 && x10 == 0)
+	if (x1000 == 0 && x100==0 && x10 == 0 && !point[3])
 	{
-		DigitWrite(num[10], point[3], 3);
+		DigitWrite(num[10], point[1], 1);
 	}
 	else
 	{

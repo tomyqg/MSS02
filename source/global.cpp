@@ -26,6 +26,8 @@ void global::init(void)
 	usrMenuBuild();
 
 	Menu.readFlash();
+
+	SYS[0].pValue = 0.0f;
 	Menu.selectGroup(SYS[1].getValue());
 	Menu.selectRoot();
 	mbs_table[301] = (u16*) (0x1FFF7A10);
@@ -34,7 +36,12 @@ void global::init(void)
 	mbs_table[304] = (u16*) (0x1FFF7A16);
 	mbs_table[305] = (u16*) (0x1FFF7A18);
 	mbs_table[306] = (u16*) (0x1FFF7A1A);
-	SYS[5].setValue(19);
+
+
+
+	oMin.Ch1_FrRms.AvValueFreq = (u16) (MIN[11].pValue);
+	oMin.Ch2_FrRms.AvValueFreq = (u16) (MIN[12].pValue);
+	oMin.Ch1_FrRms.AvValueRms = (u16) MIN[20].getValue();
 
 	oMin.init(MIN);
 
@@ -114,7 +121,7 @@ void global::init(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
 	TimeBaseInit_Structure.TIM_Prescaler = 83;
-	TimeBaseInit_Structure.TIM_Period = 9; // value -1; 1 = 2 mks 999 = 1000mks = 1ms
+	TimeBaseInit_Structure.TIM_Period = 9;
 	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM4, &TimeBaseInit_Structure);
@@ -147,7 +154,7 @@ void global::init(void)
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
-	//SysTick_Config(SYSTICK_VALUE);
+
 
 }
 
@@ -248,6 +255,7 @@ void global::cycle(void)
 		profibusDataExchange();
 		changeVisibleItem();
 
+		Menu.Display();
 		Menu.setDefaultValue(SYS[6].getValue());
 		Menu.selectGroup(SYS[1].getValue());
 		Menu.systemRestart(SYS[8]);
@@ -256,37 +264,72 @@ void global::cycle(void)
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
 		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 
-		if (cycle_cnt > 25)
+
+
+
+		if (cycle_cnt > 50)
 		{
-			cycle_cnt=0;
+			SYS[5].setValue(swVersion);
+
+			MIN[8].pValue = oMin.AvrCos;
+
+			cycle_cnt = 0;
 			Menu.changeItem(MIN[13], MIN[4]);
 			Menu.changeItem(MIN[14], MIN[5]);
 
-			oMin.Ch1_FrRms.cntRmsMax = (u16) (MIN[11].pValue);
-			oMin.Ch2_FrRms.cntRmsMax = (u16) (MIN[12].pValue);
+
 
 			oMin.ZeroOffset[0] = (u16) (MIN[13].pValue);
 			oMin.ZeroOffset[1] = (u16) (MIN[14].pValue);
 
-			oMin.Ch1_FrRms.RmsFactor = (MIN[15].pValue);
-			oMin.Ch2_FrRms.RmsFactor = (MIN[16].pValue);
+			oMin.Ch1_FrRms.RmsFactor = (MIN[15].pValue) / 1000.0f;
+			oMin.Ch2_FrRms.RmsFactor = (MIN[16].pValue) / 1000.0f;
+
+			oMin.Ch1_Alarm.factor = oMin.Ch1_FrRms.RmsFactor;
+			oMin.Ch2_Alarm.factor = oMin.Ch2_FrRms.RmsFactor;
 
 			oMin.Ch1_Adc.MaxAvrCount = (u16) MIN[17].pValue; //Max count average
 			oMin.Ch2_Adc.MaxAvrCount = (u16) MIN[18].pValue; //Max count average
 
-			oMin.Ch1_FrRms.cntFreqMax = (u16) MIN[20].getValue();
-			oMin.Ch2_FrRms.cntFreqMax = (u16) MIN[20].getValue();
+			oMin.Ch1_FrRms.AvValueRms = (u16) MIN[20].getValue();
+
 
 			oMin.AC_DC[0] = (u8) MIN[9].getValue();
 			oMin.AC_DC[1] = (u8) MIN[10].getValue();
 
-			oMin.Ch1_Alarm.AcDc = MIN[9].getValue();
+			oMin.Ch1_Alarm.AcDc =  (u8)MIN[9].getValue();
 			oMin.Ch1_Alarm.SelectMode = (u8) MIN[21].getValue();
-			oMin.Ch1_Alarm.invOut = MIN[22].getValue();
+			oMin.Ch1_Alarm.invOut = (u8) MIN[22].getValue();
 			oMin.Ch1_Alarm.minValue = MIN[23].getValue();
 			oMin.Ch1_Alarm.maxValue = MIN[24].getValue();
 			oMin.Ch1_Alarm.avrAl = MIN[25].getValue();
-			oMin.Ch1_Alarm.setOut = MIN[26].getValue();
+			oMin.Ch1_Alarm.setOut = (u8) MIN[26].getValue();
+
+			if (oMin.Ch1_Alarm.SelectMode == 4.0f)
+			{
+				oMin.Ch1_Alarm.tOut = (u8) MIN[27].getValue();
+			}
+			else
+			{
+				MIN[27].setValue((float) oMin.Ch1_Alarm.tOut);
+			}
+
+			oMin.Ch2_Alarm.AcDc = (u8) MIN[10].getValue();
+			oMin.Ch2_Alarm.SelectMode = (u8) MIN[28].getValue();
+			oMin.Ch2_Alarm.invOut = (u8) MIN[29].getValue();
+			oMin.Ch2_Alarm.minValue = MIN[30].getValue();
+			oMin.Ch2_Alarm.maxValue = MIN[31].getValue();
+			oMin.Ch2_Alarm.avrAl = MIN[32].getValue();
+			oMin.Ch2_Alarm.setOut = (u8) MIN[33].getValue();
+
+			if (oMin.Ch2_Alarm.SelectMode == 4.0f)
+			{
+				oMin.Ch2_Alarm.tOut = (u8) MIN[34].getValue();
+			}
+			else
+			{
+				MIN[34].setValue((float) oMin.Ch2_Alarm.tOut);
+			}
 
 			oMin.Ch1_Adc.sendToItem(MIN[4]);
 			oMin.Ch2_Adc.sendToItem(MIN[5]);
@@ -296,13 +339,15 @@ void global::cycle(void)
 		}
 
 		cycle_cnt++;
-		Menu.Display();
+
 
 		if (mbs_Slave.act > 0)
 		{
 			Menu.Flash.writeFloat(mbs_Slave.mbToFlashData.mbAddr * 2, mbs_Slave.mbToFlashData.mbValue);
 			mbs_Slave.act = 0;
 		}
+
+		Menu.Display();
 	}
 
 }
@@ -404,21 +449,21 @@ void global::usrMenuBuild(void)
 	MIN[16].config(sym_n, 16, 0, 9999, 1, 1, adr += 4, PARAMETR); //Коэффициент канала 2
 	MIN[17].config(sym_n, 17, 5, 50, 1, 25, adr += 4, PARAMETR); //Усреднение АЦП канал 1
 	MIN[18].config(sym_n, 18, 5, 50, 1, 25, adr += 4, PARAMETR); //Усреднение АЦП канал 2
-	MIN[19].config(sym_n, 19, 1, 2, 1, 1, adr += 4, PARAMETR); //Реверс знак косинуса
+	MIN[19].config(sym_n, 19, 0, 1, 1, 0, adr += 4, PARAMETR); //Реверс знак косинуса
 	MIN[20].config(sym_n, 20, 1, 9999, 1, 500, adr += 4, PARAMETR); //Усреднение значения косинуса
-	MIN[21].config(sym_n, 21, 1, 3, 1, 1, adr += 4, PARAMETR); //Выход аварии 1 назначение
-	MIN[22].config(sym_n, 22, 1, 2, 1, 1, adr += 4, PARAMETR); //Инвертирование выхода 1
-	MIN[23].config(sym_n, 23, 0, 9999, 1, 0, adr += 4, PARAMETR); //Значение уставки минимум 1
-	MIN[24].config(sym_n, 24, 0, 9999, 1, 1, adr += 4, PARAMETR); //Значение уставки максимум 1
-	MIN[25].config(sym_n, 25, 0, 99, 1, 5, adr += 4, PARAMETR); //Усреднение аварии 1
-	MIN[26].config(sym_n, 26, 1, 2, 1, 1, adr += 4, PARAMETR); //Удержание аварии 1
+	MIN[21].config(sym_n, 21, 1, 4, 1, 1, adr += 4, PARAMETR); //Выход аварии 1 назначение
+	MIN[22].config(sym_n, 22, 0, 1, 1, 0, adr += 4, PARAMETR); //Инвертирование выхода 1
+	MIN[23].config(sym_n, 23, -9999, 9999, 1, 0, adr += 4, PARAMETR); //Значение уставки минимум 1
+	MIN[24].config(sym_n, 24, -9999, 9999, 1, 1, adr += 4, PARAMETR); //Значение уставки максимум 1
+	MIN[25].config(sym_n, 25, 0, 9999, 1, 50, adr += 4, PARAMETR); //Усреднение аварии 1
+	MIN[26].config(sym_n, 26, 0, 1, 1, 0, adr += 4, PARAMETR); //Удержание аварии 1
 	MIN[27].config(sym_n, 27, 0, 1, 1, 0, adr += 4, PARAMETR); //Значение выход 1
-	MIN[28].config(sym_n, 28, 1, 3, 1, 1, adr += 4, PARAMETR); //Выход аварии 2 назначение
-	MIN[29].config(sym_n, 29, 1, 2, 1, 1, adr += 4, PARAMETR); //Инвертирование выхода 2
-	MIN[30].config(sym_n, 30, 0, 9999, 1, 0, adr += 4, PARAMETR); //Значение уставки минимум 2
-	MIN[31].config(sym_n, 31, 0, 9999, 1, 1, adr += 4, PARAMETR); //Значение уставки максимум 2
+	MIN[28].config(sym_n, 28, 1, 4, 1, 1, adr += 4, PARAMETR); //Выход аварии 2 назначение
+	MIN[29].config(sym_n, 29, 0, 1, 1, 0, adr += 4, PARAMETR); //Инвертирование выхода 2
+	MIN[30].config(sym_n, 30, -9999, 9999, 1, 0, adr += 4, PARAMETR); //Значение уставки минимум 2
+	MIN[31].config(sym_n, 31, -9999, 9999, 1, 1, adr += 4, PARAMETR); //Значение уставки максимум 2
 	MIN[32].config(sym_n, 32, 0, 99, 1, 5, adr += 4, PARAMETR); //Усреднение аварии 2
-	MIN[33].config(sym_n, 33, 1, 2, 1, 1, adr += 4, PARAMETR); //Удержание аварии 2
+	MIN[33].config(sym_n, 33, 0, 1, 1, 0, adr += 4, PARAMETR); //Удержание аварии 2
 	MIN[34].config(sym_n, 34, 0, 1, 1, 0, adr += 4, PARAMETR); //Значение выход 2
 	MIN[35].config(sym_n, 35, 1, 2, 1, 1, adr += 4, PARAMETR); //Дискретный вход 1 настройка
 	MIN[36].config(sym_n, 36, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 1 значение
@@ -632,9 +677,15 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_15;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;

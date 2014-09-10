@@ -12,6 +12,7 @@
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
 #include "math.h"
+#include <Averaging.h>
 /*
  *@autor
  */
@@ -19,12 +20,13 @@ class FrRms
 {
 public:
 	FrRms();
-	void init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset, u8 *iAcDc);
+	void init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset);
 	void calculateAC(bool DtU);
 	void calculateDC();
 	void sendToItem(MenuItem &Freq, MenuItem &Rms);
+	u16 AbsValue(u16 iValue, u16 iZeroOffset, bool iDC);
 
-	static const u8 FilterOutValue = 25;
+
 	u16 *SigOk;
 	u16 *ADCavr;
 	u16 *ZeroOffset;
@@ -33,34 +35,35 @@ public:
 	bool *dataOk;
 
 
-	u8 *AcDc; // 0=AC, 1=DC;
-	u16 cntFreqMax;
-	u16 cntRmsMax;
+	u16 AbsAdc;
+
+	u16 AvValueRms;
+	u16 AvValueFreq;
 
 	u16 DcCounter;
 
+
+
+	u16 cntPerPeriod; //cycles during one period
+
+	Averaging AvFreq;
+	Averaging AvRms;
+
 private:
 
-	u16 cntCalc;
+	u16 tCntPerPeriod; //cycles during one period
 
 
-	u16 cntFreq;
-
-
-	u16 cntRms;
-
-	u8  cntEnOutValue; //Counter - filter first data
-
-	u16 cntAvr;
-	float avrFr;
-	float tAvrFr;
 	float factor;
 
-	float tRms;
-	float tAvrRms;
+	float Freq;
+	float avrFreq;
+
+	float Rms;
 	float avrRms;
-	u32 rmsSum = 0;
-	u16 tmp = 0;
+
+	u32 sumRms;
+
 
 
 };

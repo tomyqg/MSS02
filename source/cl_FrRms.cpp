@@ -7,168 +7,148 @@
  */
 
 #include "cl_FrRms.h"
+#include <Averaging.h>
+
+// Calc absolute value of the ADC
+u16 FrRms::AbsValue(u16 iValue, u16 iZeroOffset, bool iDC=0)
+{
+	if (iValue >= iZeroOffset)
+	{
+		return iValue - iZeroOffset;
+	}
+
+	if (iValue < iZeroOffset)
+	{
+		if (iDC)
+		{
+			return (iZeroOffset - iValue) * (-1);
+		}
+		else
+		{
+			return iZeroOffset - iValue;
+		}
+	}
+	return 0;
+}
 
 FrRms::FrRms()
 {
+
 }
 
-void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset, u8 *iAcDc)
+void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset)
 {
 	dataOk = idDataOk;
 	SigOk = iSigOk;
 	ADCavr = iADCavr;
 	ZeroOffset = iZeroOffset;
-	factor = 0.00001001;
-	cntFreq = 0;
-	cntAvr = 0;
-	cntFreq = 0;
+	factor = 0.0000100600;
 	RmsFactor = 0.0;
-	AcDc = iAcDc;
+
+
+	AvFreq.setMaxCount(50); //TODO delete constant
+	AvRms.setMaxCount(50);
 }
 
 void FrRms::calculateAC(bool DtU)
 {
+	//Amplitude of signal above the minimum
 	if (*SigOk > 0)
 	{
-
+		//Zero-crossing
 		if (DtU)
 		{
+			//Calculate frequency
+			Freq = (1 / ((float) tCntPerPeriod * factor));
 
-			//Расчет частоты
-			tAvrFr = tAvrFr + (1 / ((float) cntCalc * factor));
-			cntFreq++;
+			//Averaging of the current frequency
+			avrFreq = AvFreq.avr(Freq);
 
-			//Усреднение текущей частоты
-			if (cntFreq >= cntFreqMax) //
-			{
-				if (cntEnOutValue > FilterOutValue)
-					avrFr = tAvrFr / cntFreqMax;
+			//Calculate RMS
+			Rms = (sqrtf((((float) sumRms) * 2) / ((float) tCntPerPeriod))) * RmsFactor;
 
-				tAvrFr = 0.0;
-				cntFreq = 0;
-			}
+			//Averaging of the RMS
+			avrRms = AvRms.avr(Rms);
 
-			//Расчет рмс
-			tRms = sqrtf((((float) rmsSum) *2) / ((float) cntCalc));
-			tRms *= RmsFactor;
-			cntRms++;
-			tAvrRms += tRms;
-
-			if (cntRms >= cntRmsMax) //
-			{
-				if (cntEnOutValue > FilterOutValue)
-					avrRms = tAvrRms / cntRmsMax;
-
-				tAvrRms = 0.0;
-				cntRms = 0;
-			}
-
-			cntCalc = 0;
-			rmsSum = 0;
+			cntPerPeriod = tCntPerPeriod;
+			tCntPerPeriod = 0;
+			sumRms = 0;
 
 		}
 		else
 		{
-			cntCalc++;
+			// Calc absolute value of the ADC
+			AbsAdc = AbsValue(*ADCavr, *ZeroOffset);
 
-			if (*ADCavr >= *ZeroOffset)
-			{
-				tmp = *ADCavr - *ZeroOffset;
-			}
-
-			if (*ADCavr < *ZeroOffset)
-			{
-				tmp = *ZeroOffset - *ADCavr;
-			}
-
-			rmsSum += (tmp * tmp)/2;
-
+			sumRms += (AbsAdc * AbsAdc) / 2;
+			tCntPerPeriod++;
 		}
 
 		*SigOk = *SigOk - 1;
 	}
 	else
 	{
-		avrFr = 0.0;
-		avrRms = 0.0;
-		tRms = 0.0;
-		cntEnOutValue = 0;
-	}
-	*dataOk = false;
+		avrFreq = 0.0f;
+		avrRms = 0.0f;
+		Rms = 0.0f;
+		Freq = 0.0f;
 
-	if (cntEnOutValue <= FilterOutValue)
-		cntEnOutValue++;
+
+	}
+
+	*dataOk = false;
 
 }
 
 void FrRms::calculateDC()
 {
+	//Amplitude of signal above the minimum
 	if (*SigOk > 0)
 	{
-
-		if (DcCounter > 1999)
+		if (DcCounter >= 2000)
 		{
+			//Calculate RMS
+			Rms = sqrtf((((float) sumRms) * 2) / ((float) tCntPerPeriod));
+			Rms *= RmsFactor * 1.414;
 
-			//Расчет рмс
-			tRms = sqrtf(((float) rmsSum) / ((float) cntCalc));
-			tRms *= RmsFactor * 1.414;
-			cntRms++;
-			tAvrRms += tRms;
+			if (*ADCavr < *ZeroOffset)
+				Rms *= -1.0f;
 
-			if (cntRms >= cntRmsMax) //
-			{
-				if (cntEnOutValue > FilterOutValue)
-					avrRms = tAvrRms / cntRmsMax;
+			avrRms = AvRms.avr(Rms);
 
-				tAvrRms = 0.0;
-				cntRms = 0;
-			}
-			tAvrFr = 0.0;
-			cntFreq = 0;
-			cntCalc = 0;
-			rmsSum = 0;
+			avrFreq = 0.0f;
+			tCntPerPeriod = 0;
+			sumRms = 0;
 			DcCounter = 1;
 
 		}
 		else
 		{
-			cntCalc++;
+			tCntPerPeriod++;
 
-			if (*ADCavr >= *ZeroOffset)
-			{
-				tmp = *ADCavr - *ZeroOffset;
-			}
+			// Calc absolute value of the ADC
+			AbsAdc = AbsValue(*ADCavr, *ZeroOffset,true);
+			sumRms += (AbsAdc * AbsAdc) / 2;
 
-			if (*ADCavr < *ZeroOffset)
-			{
-				tmp = *ZeroOffset - *ADCavr;
-			}
-
-			rmsSum += tmp * tmp;
 			DcCounter++;
-
 		}
 
-		*SigOk = *SigOk - 1;
+		*SigOk--; //decrease SigOk
 	}
 	else
 	{
-		avrFr = 0.0;
+		avrFreq = 0.0;
 		avrRms = 0.0;
-		tRms = 0.0;
-		cntEnOutValue = 0;
+		Rms = 0.0;
 	}
+
 	*dataOk = false;
-
-	if (cntEnOutValue <= FilterOutValue)
-		cntEnOutValue++;
-
 }
 
 void FrRms::sendToItem(MenuItem &iFreq, MenuItem &iRms)
 {
 
-	iFreq.pValue = avrFr;
+	iFreq.pValue = avrFreq;
 	iRms.pValue = avrRms;
 
 }

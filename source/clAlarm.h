@@ -27,16 +27,19 @@ public:
     uint16_t inGpioPin;
 	u8 SelectMode; // 0 = None, 1=Alarm, 2=ZeroLine, 3=OverFull
 
-	float invOut;
-	float setOut;
-	float AcDc; // 0=AC, 1 = DC
+	//static const float sqrt2;
+
+	u8 invOut;
+	u8 setOut;
+	u8 AcDc; // 0=AC, 1 = DC
 	u8 tOut = 0;
 	float out;
 
-	u16 cntAvr;
+	u16 cntAvrage;
 	float factor;
+	float dcVal; //Calculated value
+	float acVal; //Calculated value
 
-	float Value; //Calculated value
 	float minValue;
 	float maxValue;
 	float avrAl;

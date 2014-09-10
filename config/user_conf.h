@@ -26,6 +26,7 @@
 #include "cl_Adc.h"
 #include "cl_FrRms.h"
 #include <clAlarm.h>
+#include "Averaging.h"
 
 //#include "cl_Min.h"
 

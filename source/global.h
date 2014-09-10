@@ -12,12 +12,14 @@
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
 #include "cl_Min.h"
+static const float swVersion = 24;
 class global
 {
 public:
 	global();
 	void init(void);
 	void cycle(void);
+
 	void ptrFtoI(float *value, u16 **buff, u16 number);
 	void usrMenuBuild(void);
 	void itSampleADC(void);

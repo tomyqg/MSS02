@@ -12,17 +12,18 @@
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
 /*
- *@autor
+ *@autor static
  */
 class cl_Min
 {
 public:
 	cl_Min();
-    void init(MenuItem *tXXX);
-	bool DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset);
+	void init(MenuItem *tXXX);
+	bool DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk);
 	void Calculate();
 
 	u8 mCurPos[2];
+
 
 	bool SignaType[2]; //0=DC, 1 = DC;
 
@@ -32,7 +33,7 @@ public:
 	u16 SignalOk[2];
 	u16 ADCavr[2];
 	bool dataOk[2];
-
+	bool DtU[2]; //Zero-crossing
 	u8 AC_DC[2];
 
 	AdcX Ch1_Adc;
@@ -44,9 +45,12 @@ public:
 	cl_Alarm Ch1_Alarm;
 	cl_Alarm Ch2_Alarm;
 
-
-
-
+	u16 cntCos;
+u16 cntAvrCos;
+	float cos;
+	float tcos;
+	float AvrCos;
+	float SumCos;
 
 };
 

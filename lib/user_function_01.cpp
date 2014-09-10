@@ -120,6 +120,10 @@ buff[number] = (u16*)value;
 buff[number+1] = buff[number]+1;
 }
 
+
+
+
+
 void send_USART_dma(const uint8_t *buff, uint8_t size)
 {
 

@@ -8,6 +8,8 @@
 
 #include <clAlarm.h>
 
+const float sqrt2 = 0.7071f;
+
 cl_Alarm::cl_Alarm()
 {
 	// TODO Auto-generated constructor stub
@@ -26,10 +28,9 @@ void cl_Alarm::init()
 
 	out = 0;
 
-	cntAvr = 0;
+	cntAvrage = 0;
 	factor = 1.0;
 
-	Value = 0.0;
 	minValue = 0.0;
 	maxValue = 4000;
 	avrAl = 10;
@@ -39,14 +40,6 @@ void cl_Alarm::init()
 void cl_Alarm::calculate(u8 Pos, u16 Adc)
 {
 
-	if (AcDc)
-	{
-		Value = ((float) Adc * factor);
-	}
-	else
-	{
-		Value = ((float) Adc * factor) / 0.7071;
-	}
 
 	switch (SelectMode)
 	{
@@ -54,12 +47,14 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 
 		if ((inGpioX->IDR & inGpioPin) != (uint32_t) Bit_RESET)
 		{
-			tOut = 1;
+			if (!setOut)
+				tOut = 0;
+
 		}
 		else
 		{
-			if (!setOut)
-				tOut = 0;
+
+			tOut = 1;
 		}
 
 		break;
@@ -70,24 +65,56 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 
 	case 3: //OverFull
 
-		if (Value > maxValue || Value < minValue)
+
+		if (AcDc)
 		{
-			if (cntAvr >= (u16) avrAl)
+			dcVal = ((float) Adc * factor);
+
+			if ((dcVal > maxValue) || (dcVal < minValue))
 			{
-				tOut = 1;
+				if (cntAvrage >= ((u16) avrAl))
+				{
+					tOut = 1;
+				}
+				else
+				{
+					++cntAvrage;
+				}
 			}
 			else
 			{
-				cntAvr++;
+				if (!setOut)
+				{
+					tOut = 0;
+					cntAvrage = 0;
+				}
+
 			}
 
 		}
 		else
 		{
-			if (!setOut)
+			acVal = (float) Adc * sqrt2 * factor; //FIXME move to cycle
+
+			if (acVal > maxValue)
 			{
-				tOut = 0;
-				cntAvr = 0;
+				if (cntAvrage >= (u16) avrAl)
+				{
+					tOut = 1;
+				}
+				else
+				{
+					cntAvrage++;
+				}
+			}
+			else
+			{
+				if (!setOut)
+				{
+					tOut = 0;
+					cntAvrage = 0;
+				}
+//
 			}
 
 		}
