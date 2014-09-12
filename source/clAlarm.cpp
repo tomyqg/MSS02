@@ -1,7 +1,7 @@
 /*
  * clAlarm.cpp
  *
- *  Created on: 09 èþíÿ 2014 ã.
+ *  Created on: 09 Î¸ÏŽÎ½ïŸ‡ 2014 Î³.
  *      Author: temmka
  *  Description: 
  */
@@ -23,8 +23,7 @@ void cl_Alarm::init()
 
 	invOut = 0;
 	setOut = 0;
-	AcDc = 0;
-	; // 0=AC, 1 = DC
+	AcDc = 0; // 0=AC, 1 = DC
 
 	out = 0;
 
@@ -40,7 +39,6 @@ void cl_Alarm::init()
 void cl_Alarm::calculate(u8 Pos, u16 Adc)
 {
 
-
 	switch (SelectMode)
 	{
 	case 1: //Hard fault
@@ -49,11 +47,9 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 		{
 			if (!setOut)
 				tOut = 0;
-
 		}
 		else
 		{
-
 			tOut = 1;
 		}
 
@@ -65,10 +61,9 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 
 	case 3: //OverFull
 
-
 		if (AcDc)
 		{
-			dcVal = ((float) Adc * factor);
+			dcVal = ((float) Adc);
 
 			if ((dcVal > maxValue) || (dcVal < minValue))
 			{
@@ -94,9 +89,9 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 		}
 		else
 		{
-			acVal = (float) Adc * sqrt2 * factor; //FIXME move to cycle
+			acVal = (float) Adc * sqrt2;
 
-			if (acVal > maxValue)
+			if ((acVal > maxValue) || (acVal < minValue))
 			{
 				if (cntAvrage >= (u16) avrAl)
 				{
@@ -131,12 +126,26 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 		tOut = !tOut;
 	}
 
-	if (tOut != 0)
+	if (SelectMode == 2)
 	{
+		out = tOut;
+	}
+	else
+	{
+		out = tof(tOut, 5);
+	}
+
+
+
+
+	if (out)
+	{
+		ledGpioX->BSRRL = ledGpioPin;
 		outGpioX->BSRRL = outGpioPin;
 	}
 	else
 	{
+		ledGpioX->BSRRH = ledGpioPin;
 		outGpioX->BSRRH = outGpioPin;
 	}
 

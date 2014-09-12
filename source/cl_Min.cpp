@@ -20,16 +20,25 @@ void cl_Min::init(MenuItem *tXXX)
 	Ch1_Adc.init(&dataOk[0], &SignalOk[0], &ADCavr[0], &ZeroOffset[0], ADC1);
 	Ch2_Adc.init(&dataOk[1], &SignalOk[1], &ADCavr[1], &ZeroOffset[1], ADC2);
 
-	Ch1_Alarm.outGpioX = GPIOC;
-	Ch1_Alarm.outGpioPin = GPIO_Pin_1;
+	Ch1_Alarm.ledGpioX = GPIOC;
+	Ch1_Alarm.ledGpioPin = GPIO_Pin_1;
+
+	Ch1_Alarm.outGpioX = GPIOA;
+	Ch1_Alarm.outGpioPin = GPIO_Pin_3;
 
 	Ch1_Alarm.inGpioX = GPIOB;
 	Ch1_Alarm.inGpioPin = GPIO_Pin_14;
 
+
+
+
 	Ch1_Alarm.init();
 
+	Ch2_Alarm.ledGpioX = GPIOC;
+	Ch2_Alarm.ledGpioPin = GPIO_Pin_2;
+
 	Ch2_Alarm.outGpioX = GPIOC;
-	Ch2_Alarm.outGpioPin = GPIO_Pin_2;
+	Ch2_Alarm.outGpioPin = GPIO_Pin_12;
 
 	Ch2_Alarm.inGpioX = GPIOB;
 	Ch2_Alarm.inGpioPin = GPIO_Pin_15;
@@ -68,6 +77,7 @@ void cl_Min::Calculate()
 
 	Ch1_Adc.sample();
 	DtU[0] = DwnToUp(ADCavr[0], mCurPos[0], ZeroOffset[0], SignalOk[0]);
+	Ch1_Alarm.calculate(mCurPos[0], Ch1_FrRms.AbsAdc);
 
 	//Select type of current channel 1
 	if (AC_DC[0])
@@ -79,11 +89,11 @@ void cl_Min::Calculate()
 		Ch1_FrRms.calculateAC(DtU[0]);
 	}
 
-	Ch1_Alarm.calculate(mCurPos[0], Ch1_FrRms.AbsAdc);
+
 
 	Ch2_Adc.sample();
 	DtU[1] = DwnToUp(ADCavr[1], mCurPos[1], ZeroOffset[1], SignalOk[1]);
-
+	Ch2_Alarm.calculate(mCurPos[1], Ch2_FrRms.AbsAdc);
 	//Select type of current channel 2
 	if (AC_DC[1])
 	{
@@ -94,7 +104,7 @@ void cl_Min::Calculate()
 		Ch2_FrRms.calculateAC(DtU[1]);
 	}
 
-	Ch2_Alarm.calculate(mCurPos[1], Ch2_FrRms.AbsAdc);
+
 
 	//if 1 and 2 chanal is AC
 	if (!AC_DC[0] && !AC_DC[1])

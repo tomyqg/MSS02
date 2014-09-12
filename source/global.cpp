@@ -271,7 +271,7 @@ void global::cycle(void)
 			Menu.changeItem(MIN[13], MIN[4]);
 			Menu.changeItem(MIN[14], MIN[5]);
 
-			oMin.ZeroOffset[0] = (u16) (MIN[13].pValue);
+			oMin.ZeroOffset[0] =(u16) (MIN[13].pValue );
 			oMin.ZeroOffset[1] = (u16) (MIN[14].pValue);
 
 			oMin.Ch1_FrRms.RmsFactor = (MIN[15].pValue) / 1000.0f;
@@ -469,7 +469,7 @@ void global::usrMenuBuild(void)
 	MIN[33].config(sym_n, 33, 0, 1, 1, 0, adr += 4, PARAMETR); //Удержание аварии 2
 	MIN[34].config(sym_n, 34, 0, 1, 1, 0, adr += 4, PARAMETR); //Значение выход 2
 	MIN[35].config(sym_n, 35, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 1 настройка
-	MIN[36].config(sym_n, 36, 0, 1, 1, 0, adr += 4, PARAMETR); //Дискретный вход 1 значение
+	MIN[36].config(sym_n, 36, 0, 1, 1, 0, adr += 4, OUT_VALUE); //Дискретный вход 1 значение
 	MIN[37].config(sym_n, 37, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
 	MIN[38].config(sym_n, 38, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
 	MIN[39].config(sym_n, 39, 0, 0, 0, 0, adr += 4, PARAMETR); //Резерв
@@ -673,8 +673,16 @@ void global::gpioInit(IO_7segment* SevenSeg, softSpi* spiFlash)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_12;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
