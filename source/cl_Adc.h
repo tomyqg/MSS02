@@ -23,7 +23,7 @@ public:
 	u8 i;
 	uint32_t ADCBuff;
 	ADC_TypeDef* ADCx;
-
+	MinComunication *MinCom;
 
 //MIN[4].pValue = (float) *aADCavr;
 };

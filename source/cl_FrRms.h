@@ -23,9 +23,10 @@ public:
 	void init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset);
 	void calculateAC(bool DtU);
 	void calculateDC();
+	void calculate();
 	void sendToItem(MenuItem &Freq, MenuItem &Rms);
 	u16 AbsValue(u16 iValue, u16 iZeroOffset, bool iDC);
-
+	MinComunication *MinCom;
 
 	u16 *SigOk;
 	u16 *ADCavr;
@@ -33,7 +34,7 @@ public:
 
 	float RmsFactor;
 	bool *dataOk;
-
+u8 AcDc; //0=Ac, 1=Dc
 
 	u16 AbsAdc;
 

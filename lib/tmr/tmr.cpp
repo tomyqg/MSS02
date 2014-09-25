@@ -8,37 +8,29 @@
 
 #include "tmr.h"
 
-tmr::tmr(u8 tim_type, u32 set_delay)
+tmr::tmr(unsigned char tim_type)
 {
 	type = tim_type;
-	cmpVal = set_delay;
 
-	//SYSCLK_VALUE / SYSTICK_VALUE
-
-}
-
-void tmr::start(void)
-{
-	run = true;
-}
-
-void tmr::stop(void)
-{
-	run = false;
-}
-
-void tmr::reset(void)
-{
+	p = 0;
+	tout = 0;
+	out = 0;
 	counter = 0;
+    run=0;
 }
 
-void tmr::update(void)
+
+
+bool tmr::update(bool in, unsigned long time_value)
 {
+	run = in;
+
+
 	switch (type)
 	{
 	case T_ON:
 
-		if (in) //input is active
+		if (run) //input is active
 		{
 			if (!p) //firs cycle detect
 			{
@@ -46,33 +38,30 @@ void tmr::update(void)
 				p = true;
 			}
 
-			if (counter > cmpVal) //set output after overflow
+			if (counter >= time_value) //set output after overflow
 			{
-				out = true;
+				tout = true;
 
-			}
-			else //reset data
+			} else //reset data
 			{
-				out = false;
+				tout = false;
 				counter++;
 			}
-		}
-		else
+		} else
 		{
 			p = false;
-			out = false;
+			tout = false;
 		}
 		break;
 
 	case T_OFF:
 
-		if (in) //input is active
+		if (run) //input is active
 		{
 			p = false;
-			out = true;
+			tout = true;
 
-		}
-		else //input deactivate
+		} else //input deactivate
 		{
 			if (!p) //firs cycle detect deactivate
 			{
@@ -80,11 +69,10 @@ void tmr::update(void)
 				p = true;
 			}
 
-			if (counter > cmpVal) //reset output after overflow
+			if (counter >= time_value) //reset output after overflow
 			{
-				out = false;
-			}
-			else //reset data
+				tout = false;
+			} else //reset data
 			{
 				counter++;
 			}
@@ -92,12 +80,10 @@ void tmr::update(void)
 		}
 		break;
 	}
-
-
+out = tout;
+	return out;
 
 }
-
-
 
 bool tmr::status(void)
 {

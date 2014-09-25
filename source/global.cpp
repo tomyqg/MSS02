@@ -152,7 +152,7 @@ void global::init(void)
 				oMin.AC_DC[0] = (u8) MIN[9].getValue();
 				oMin.AC_DC[1] = (u8) MIN[10].getValue();
 
-				oMin.Ch1_Alarm.AcDc = (u8) MIN[9].getValue();
+
 				oMin.Ch1_Alarm.SelectMode = (u8) MIN[21].getValue();
 				oMin.Ch1_Alarm.invOut = (u8) MIN[22].getValue();
 				oMin.Ch1_Alarm.minValue = MIN[23].getValue();
@@ -169,7 +169,7 @@ void global::init(void)
 					MIN[27].setValue((float) oMin.Ch1_Alarm.tOut);
 				}
 
-				oMin.Ch2_Alarm.AcDc = (u8) MIN[10].getValue();
+
 				oMin.Ch2_Alarm.SelectMode = (u8) MIN[28].getValue();
 				oMin.Ch2_Alarm.invOut = (u8) MIN[29].getValue();
 				oMin.Ch2_Alarm.minValue = MIN[30].getValue();
@@ -382,7 +382,7 @@ void global::cycle(void)
 			oMin.AC_DC[0] = (u8) MIN[9].getValue();
 			oMin.AC_DC[1] = (u8) MIN[10].getValue();
 
-			oMin.Ch1_Alarm.AcDc = (u8) MIN[9].getValue();
+
 			oMin.Ch1_Alarm.SelectMode = (u8) MIN[21].getValue();
 			oMin.Ch1_Alarm.invOut = (u8) MIN[22].getValue();
 			oMin.Ch1_Alarm.minValue = MIN[23].getValue();
@@ -399,7 +399,7 @@ void global::cycle(void)
 				MIN[27].setValue((float) oMin.Ch1_Alarm.tOut);
 			}
 
-			oMin.Ch2_Alarm.AcDc = (u8) MIN[10].getValue();
+
 			oMin.Ch2_Alarm.SelectMode = (u8) MIN[28].getValue();
 			oMin.Ch2_Alarm.invOut = (u8) MIN[29].getValue();
 			oMin.Ch2_Alarm.minValue = MIN[30].getValue();

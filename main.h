@@ -91,7 +91,21 @@ const uint32_t  SYSCLK_VALUE = 168000000;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+typedef struct {
+	u16 ADCavr;     // <=Ch1_Adc
+	u8 mCurPos;     // <=Min
+	u16 ZeroOffset; // <=Cycle
+	u8 AC_DC;       // <=Cycle
+	bool DtU;       // <=Min
+	u16 SignalOk;   //<=Ch1_Adc
+	bool dataOk;    //<=Ch1_Adc
 
+	u16 AbsAdc;     // <=FrRms.AbsAdc
+
+
+
+
+}MinComunication;
 
 
 

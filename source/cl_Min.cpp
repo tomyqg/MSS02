@@ -15,10 +15,20 @@ cl_Min::cl_Min()
 void cl_Min::init(MenuItem *tXXX)
 {
 	tMIN = tXXX;
+
+	Ch1_Adc.MinCom = &MinCom_Ch_1;
+	Ch1_FrRms.MinCom = &MinCom_Ch_1;
+	Ch1_Alarm.MinCom = &MinCom_Ch_1;
+
+
+
 	Ch1_FrRms.init(&dataOk[0], &SignalOk[0], &ADCavr[0], &ZeroOffset[0]);
 	Ch2_FrRms.init(&dataOk[1], &SignalOk[1], &ADCavr[1], &ZeroOffset[1]);
 	Ch1_Adc.init(&dataOk[0], &SignalOk[0], &ADCavr[0], &ZeroOffset[0], ADC1);
 	Ch2_Adc.init(&dataOk[1], &SignalOk[1], &ADCavr[1], &ZeroOffset[1], ADC2);
+
+	Ch1_Alarm.AcDc = &AC_DC[0];
+	Ch2_Alarm.AcDc = &AC_DC[1];
 
 	Ch1_Alarm.ledGpioX = GPIOC;
 	Ch1_Alarm.ledGpioPin = GPIO_Pin_1;
@@ -50,8 +60,6 @@ void cl_Min::init(MenuItem *tXXX)
 //TODO not end
 bool cl_Min::DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk, u8 &pos, u16 &lastVal)
 {
-	u16 PlusHyst = 15;
-	u16 MinusHyst = 15;
 
 	if (Value > lastVal + 20)
 		pos = 1;
@@ -77,6 +85,11 @@ bool cl_Min::DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk, u8 
 
 }
 
+
+
+
+
+
 void cl_Min::Calculate()
 {
 
@@ -96,6 +109,8 @@ void cl_Min::Calculate()
 
 	Ch1_Alarm.calculate(mCurPos[0], Ch1_FrRms.AbsAdc);
 
+
+
 	Ch2_Adc.sample(AC_DC[1]);
 	DtU[1] = DwnToUp(ADCavr[1], mCurPos[1], ZeroOffset[1], SignalOk[1], tpos[1], tLastVal[1]);
 
@@ -109,6 +124,10 @@ void cl_Min::Calculate()
 		Ch2_FrRms.calculateAC(DtU[1]);
 	}
 	Ch2_Alarm.calculate(mCurPos[1], Ch2_FrRms.AbsAdc);
+
+
+
+
 
 	//if 1 and 2 chanal is AC
 	if (!AC_DC[0] && !AC_DC[1])

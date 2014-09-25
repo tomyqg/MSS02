@@ -144,6 +144,13 @@ void FrRms::calculateDC()
 	*dataOk = false;
 }
 
+
+void FrRms::calculate(){
+
+
+}
+
+
 void FrRms::sendToItem(MenuItem &iFreq, MenuItem &iRms)
 {
 

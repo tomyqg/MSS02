@@ -13,6 +13,9 @@
 #include "user_conf.h"
 
 
+
+
+
 enum{
 	T_ON,
 	T_OFF,
@@ -23,23 +26,20 @@ enum{
 
 class tmr {
 public:
-	bool in;
 
-	tmr(u8 type, u32 delayTime);
-	void start(void);
-	void stop(void);
-	void reset(void);
-	void update(void);
+
+	tmr(unsigned char type);
+	bool update(bool in, unsigned long set_delay);
 	bool status(void);
 
 
 private:
 
 	bool run; //status of work
+	bool tout; // signal
 	bool out; //output signal
-	u8 type; //0=ton, 1=tof, 2=pulse
-	u32 cmpVal; //setpoint value
-	u32 counter;//internal counter
+	unsigned char type; //0=ton, 1=tof, 2=pulse
+	unsigned long counter;//internal counter
 	bool p;     //one cycle detection
 };
 

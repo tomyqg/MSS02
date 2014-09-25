@@ -13,6 +13,9 @@
 #include "user_conf.h"
 #include "cl_Min.h"
 static const float swVersion = 24;
+
+
+
 class global
 {
 public:
@@ -49,8 +52,7 @@ u16 cycle_cnt;
 	u16 *mbs_table[BUFF_SIZE]; //modbus table
 
 
-
-
+	MinComunication *MinCom;
 
 
 

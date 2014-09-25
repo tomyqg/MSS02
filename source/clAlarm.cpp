@@ -19,11 +19,11 @@ cl_Alarm::cl_Alarm()
 void cl_Alarm::init()
 {
 
-	SelectMode = 0; // 0 = None, 1=Alarm, 2=ZeroLine, 3=OverFull
+	SelectMode = 0; // 0 = None, 1=Alarm, 2=ZeroLine, 3=OverFull, 4=Protocol
 
 	invOut = 0;
 	setOut = 0;
-	AcDc = 0; // 0=AC, 1 = DC
+	AcDc = 0; // 0=AC, 1=DC
 
 	out = 0;
 	tOut = 0;
@@ -43,8 +43,6 @@ void cl_Alarm::init()
 
 void cl_Alarm::calculate(u8 Pos, u16 Adc)
 {
-//	if(Adc > 65000)
-//		Adc=0;
 
 	switch (SelectMode)
 	{
@@ -68,7 +66,7 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 
 	case 3: //OverFull
 
-		if (AcDc)
+		if (*AcDc)
 		{
 			dcVal = ((float) Adc);// * sqrt2);TODO very load proc if usr sqrt
 
@@ -118,10 +116,14 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 					tOut = 0;
 					cntAvrage = 0;
 				}
-//
+
 			}
 
 		}
+
+		break;
+
+	case 4: //Soft output
 
 		break;
 
