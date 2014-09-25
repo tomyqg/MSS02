@@ -24,7 +24,7 @@ void AdcX::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset, ADC
 	i = 0;
 }
 
-void AdcX::sample()
+void AdcX::sample(u8 iAcDc)
 {
 	if (i >= MaxAvrCount)
 	{
@@ -32,7 +32,7 @@ void AdcX::sample()
 		*ADCavr = (ADCBuff / MaxAvrCount);
 		*dataOk = true;
 
-		if (ADCx->DR > (*ZeroOffset + 33) || ADCx->DR < (*ZeroOffset - 33))
+		if ((ADCx->DR > (*ZeroOffset + 33) || ADCx->DR < (*ZeroOffset - 33))|| iAcDc)
 		{
 			if (*SigOk < 15000)
 			{

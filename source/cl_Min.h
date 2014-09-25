@@ -19,7 +19,7 @@ class cl_Min
 public:
 	cl_Min();
 	void init(MenuItem *tXXX);
-	bool DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk);
+	inline bool DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk, u8 &pos, u16 &lastVal);
 	void Calculate();
 
 	u8 mCurPos[2];
@@ -49,6 +49,9 @@ public:
 	uint16_t inGpioPin;
 	bool inputValue;
 	bool inputReverse;
+
+u16 tLastVal[2];
+u8 tpos[2];
 
 
 	u16 cntCos;

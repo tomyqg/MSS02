@@ -5,13 +5,13 @@
  *      Author: temmka
  *  Description: 
  */
-
+#include "stm32f4xx_conf.h"
+#include "user_conf.h"
 #ifndef CLALARM_H_
 #define CLALARM_H_
 
 
-#include "stm32f4xx_conf.h"
-#include "user_conf.h"
+
 /*
  *@autor
  */
@@ -38,7 +38,7 @@ public:
 	u8 invOut;
 	u8 setOut;
 	u8 AcDc; // 0=AC, 1 = DC
-	u8 tOut = 0;
+	u8 tOut;
 	u8 out;
 u8 led;
 
@@ -50,6 +50,9 @@ u8 led;
 	float minValue;
 	float maxValue;
 	float avrAl;
+
+		u32 cmpVal; //setpoint value
+		bool p ;     //one cycle var
 
 };
 

@@ -67,7 +67,7 @@ uint16_t word(uint8_t high, uint8_t low);
 void delayMicroseconds(uint32_t time);
 
 bool ton(bool input, u16 delayTime);
-bool tof(bool input, u16 delayTime);
+bool tof(bool input, u16 delayTime, bool &p,u32 &cmpVal);
 
 bool tpulse(void);
 

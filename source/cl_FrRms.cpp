@@ -21,7 +21,7 @@ u16 FrRms::AbsValue(u16 iValue, u16 iZeroOffset, bool iDC=0)
 	{
 		if (iDC)
 		{
-			return (iZeroOffset - iValue) * (-1);
+			return (iZeroOffset - iValue) ;
 		}
 		else
 		{
@@ -44,7 +44,7 @@ void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset)
 	ZeroOffset = iZeroOffset;
 	factor = 0.0000100600;
 	RmsFactor = 0.0;
-
+	AbsAdc=0;
 
 
 }
@@ -132,7 +132,7 @@ void FrRms::calculateDC()
 			DcCounter++;
 		}
 
-		*SigOk--; //decrease SigOk
+		*SigOk = *SigOk-1;; //decrease SigOk
 	}
 	else
 	{

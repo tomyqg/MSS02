@@ -11,7 +11,7 @@ class AdcX
 public:
 	AdcX();
 	void init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset, ADC_TypeDef* ADC_N);
-	void sample(void);
+	void sample(u8 iAcDc);
 	void sendToItem(MenuItem &Adc);
 
 	bool *dataOk;

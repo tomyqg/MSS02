@@ -6,7 +6,7 @@
  *  Description: 
  */
 
-#include <clAlarm.h>
+#include "clAlarm.h"
 
 const float sqrt2 = 0.7071f;
 
@@ -26,6 +26,7 @@ void cl_Alarm::init()
 	AcDc = 0; // 0=AC, 1 = DC
 
 	out = 0;
+	tOut = 0;
 
 	cntAvrage = 0;
 	factor = 1.0;
@@ -34,10 +35,16 @@ void cl_Alarm::init()
 	maxValue = 4000;
 	avrAl = 10;
 
+
+	cmpVal=0; //setpoint value
+	p=1 ;     //one cycle var
+
 }
 
 void cl_Alarm::calculate(u8 Pos, u16 Adc)
 {
+//	if(Adc > 65000)
+//		Adc=0;
 
 	switch (SelectMode)
 	{
@@ -63,7 +70,7 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 
 		if (AcDc)
 		{
-			dcVal = ((float) Adc);
+			dcVal = ((float) Adc);// * sqrt2);TODO very load proc if usr sqrt
 
 			if ((dcVal > maxValue) || (dcVal < minValue))
 			{
@@ -90,6 +97,8 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 		else
 		{
 			acVal = (float) Adc * sqrt2;
+
+
 
 			if ((acVal > maxValue) || (acVal < minValue))
 			{
@@ -132,7 +141,7 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 	}
 	else
 	{
-		out = tof(tOut, 5);
+		out = tof(tOut, 5,p,cmpVal);
 	}
 
 

@@ -29,9 +29,6 @@ void cl_Min::init(MenuItem *tXXX)
 	Ch1_Alarm.inGpioX = GPIOB;
 	Ch1_Alarm.inGpioPin = GPIO_Pin_14;
 
-
-
-
 	Ch1_Alarm.init();
 
 	Ch2_Alarm.ledGpioX = GPIOC;
@@ -50,12 +47,20 @@ void cl_Min::init(MenuItem *tXXX)
 
 }
 
-bool cl_Min::DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk)
+//TODO not end
+bool cl_Min::DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk, u8 &pos, u16 &lastVal)
 {
 	u16 PlusHyst = 15;
 	u16 MinusHyst = 15;
 
-	if (Value > ZeroOffset + PlusHyst)
+	if (Value > lastVal + 20)
+		pos = 1;
+	if (Value < lastVal - 20)
+		pos = 0;
+
+	lastVal = Value;
+
+	if (Value > (ZeroOffset - 400) && pos == 1)
 	{
 		if (mCurrPos == 0)
 		{
@@ -65,7 +70,7 @@ bool cl_Min::DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk)
 		mCurrPos = 1;
 	}
 
-	if ((Value < ZeroOffset - MinusHyst) || !iSignalOk)
+	if (((Value < ZeroOffset + 400) &&(pos==0)) || !iSignalOk)
 		mCurrPos = 0;
 
 	return false;
@@ -75,9 +80,9 @@ bool cl_Min::DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk)
 void cl_Min::Calculate()
 {
 
-	Ch1_Adc.sample();
-	DtU[0] = DwnToUp(ADCavr[0], mCurPos[0], ZeroOffset[0], SignalOk[0]);
-	Ch1_Alarm.calculate(mCurPos[0], Ch1_FrRms.AbsAdc);
+	Ch1_Adc.sample(AC_DC[0]);
+	DtU[0] = DwnToUp(ADCavr[0], mCurPos[0], ZeroOffset[0], SignalOk[0], tpos[0], tLastVal[0]);
+
 
 	//Select type of current channel 1
 	if (AC_DC[0])
@@ -89,11 +94,11 @@ void cl_Min::Calculate()
 		Ch1_FrRms.calculateAC(DtU[0]);
 	}
 
+	Ch1_Alarm.calculate(mCurPos[0], Ch1_FrRms.AbsAdc);
 
+	Ch2_Adc.sample(AC_DC[1]);
+	DtU[1] = DwnToUp(ADCavr[1], mCurPos[1], ZeroOffset[1], SignalOk[1], tpos[1], tLastVal[1]);
 
-	Ch2_Adc.sample();
-	DtU[1] = DwnToUp(ADCavr[1], mCurPos[1], ZeroOffset[1], SignalOk[1]);
-	Ch2_Alarm.calculate(mCurPos[1], Ch2_FrRms.AbsAdc);
 	//Select type of current channel 2
 	if (AC_DC[1])
 	{
@@ -103,8 +108,7 @@ void cl_Min::Calculate()
 	{
 		Ch2_FrRms.calculateAC(DtU[1]);
 	}
-
-
+	Ch2_Alarm.calculate(mCurPos[1], Ch2_FrRms.AbsAdc);
 
 	//if 1 and 2 chanal is AC
 	if (!AC_DC[0] && !AC_DC[1])

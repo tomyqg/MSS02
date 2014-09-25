@@ -116,6 +116,91 @@ void global::init(void)
 //	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 //	NVIC_Init(&NVIC_Init_Structure);
 
+
+
+	SYS[5].setValue(swVersion);
+
+				MIN[8].pValue = oMin.AvrCos;
+
+				cycle_cnt = 0;
+				Menu.changeItem(MIN[13], MIN[4]);
+				Menu.changeItem(MIN[14], MIN[5]);
+
+				oMin.ZeroOffset[0] =(u16) (MIN[13].pValue );
+				oMin.ZeroOffset[1] = (u16) (MIN[14].pValue);
+
+				oMin.Ch1_FrRms.RmsFactor = (MIN[15].pValue) / 1000.0f;
+				oMin.Ch2_FrRms.RmsFactor = (MIN[16].pValue) / 1000.0f;
+
+				oMin.Ch1_Alarm.factor = oMin.Ch1_FrRms.RmsFactor;
+				oMin.Ch2_Alarm.factor = oMin.Ch2_FrRms.RmsFactor;
+
+				oMin.Ch1_Adc.MaxAvrCount = (u16) MIN[17].pValue; //Max count average
+				oMin.Ch2_Adc.MaxAvrCount = (u16) MIN[18].pValue; //Max count average
+
+				oMin.Ch1_FrRms.AvValueRms = (u16) (MIN[11].pValue);
+				oMin.Ch2_FrRms.AvValueRms = (u16) (MIN[12].pValue);
+
+				oMin.Ch1_FrRms.AvRms.setMaxCount(oMin.Ch1_FrRms.AvValueRms);
+				oMin.Ch2_FrRms.AvRms.setMaxCount(oMin.Ch2_FrRms.AvValueRms);
+
+				oMin.Ch1_FrRms.AvFreq.setMaxCount(50);
+				oMin.Ch2_FrRms.AvFreq.setMaxCount(50);
+
+				oMin.AvCos.setMaxCount((u16) MIN[20].getValue());
+
+				oMin.AC_DC[0] = (u8) MIN[9].getValue();
+				oMin.AC_DC[1] = (u8) MIN[10].getValue();
+
+				oMin.Ch1_Alarm.AcDc = (u8) MIN[9].getValue();
+				oMin.Ch1_Alarm.SelectMode = (u8) MIN[21].getValue();
+				oMin.Ch1_Alarm.invOut = (u8) MIN[22].getValue();
+				oMin.Ch1_Alarm.minValue = MIN[23].getValue();
+				oMin.Ch1_Alarm.maxValue = MIN[24].getValue();
+				oMin.Ch1_Alarm.avrAl = MIN[25].getValue();
+				oMin.Ch1_Alarm.setOut = (u8) MIN[26].getValue();
+
+				if (oMin.Ch1_Alarm.SelectMode == 4.0f)
+				{
+					oMin.Ch1_Alarm.tOut = (u8) MIN[27].getValue();
+				}
+				else
+				{
+					MIN[27].setValue((float) oMin.Ch1_Alarm.tOut);
+				}
+
+				oMin.Ch2_Alarm.AcDc = (u8) MIN[10].getValue();
+				oMin.Ch2_Alarm.SelectMode = (u8) MIN[28].getValue();
+				oMin.Ch2_Alarm.invOut = (u8) MIN[29].getValue();
+				oMin.Ch2_Alarm.minValue = MIN[30].getValue();
+				oMin.Ch2_Alarm.maxValue = MIN[31].getValue();
+				oMin.Ch2_Alarm.avrAl = MIN[32].getValue();
+				oMin.Ch2_Alarm.setOut = (u8) MIN[33].getValue();
+
+				if (oMin.Ch2_Alarm.SelectMode == 4.0f)
+				{
+					oMin.Ch2_Alarm.tOut = (u8) MIN[34].getValue();
+				}
+				else
+				{
+					MIN[34].setValue((float) oMin.Ch2_Alarm.tOut);
+				}
+
+				oMin.Ch1_Adc.sendToItem(MIN[4]);
+				oMin.Ch2_Adc.sendToItem(MIN[5]);
+
+				oMin.Ch1_FrRms.sendToItem(MIN[6], MIN[2]);
+				oMin.Ch2_FrRms.sendToItem(MIN[7], MIN[3]);
+
+				oMin.inputReverse = (bool) MIN[35].getValue();
+				MIN[36].setValue((float) oMin.inputValue);
+
+
+
+
+
+
+
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
 	TimeBaseInit_Structure.TIM_Prescaler = 83;
@@ -260,7 +345,7 @@ void global::cycle(void)
 		Menu.Select(!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0));
 		Menu.TimerReset(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2));
 
-		if (cycle_cnt > 50)
+		if (cycle_cnt > 10)
 		{
 
 			SYS[5].setValue(swVersion);

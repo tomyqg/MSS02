@@ -326,10 +326,9 @@ bool ton(bool input, u16 delayTime)
 }
 
 /* delay-off function with RTC */
-bool tof(bool input, u16 delayTime)
+bool tof(bool input, u16 delayTime, bool &p,u32 &cmpVal )
 {
-	static u32 cmpVal = 0; //setpoint value
-	static bool p = 0;     //one cycle var
+
 	bool out = 0;          //output signal(returned)
 
 	if (input == true) //input signal on
