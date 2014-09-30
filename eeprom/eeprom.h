@@ -12,7 +12,7 @@ public:
 
 
 
-
+	uint8_t checkEmpty();
 	uint8_t readByte(uint16_t address);
 	float readFloat(uint16_t address);
 	void writeByte(uint16_t address, uint8_t data);

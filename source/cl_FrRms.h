@@ -20,24 +20,17 @@ class FrRms
 {
 public:
 	FrRms();
-	void init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset);
-	void calculateAC(bool DtU);
+	void init(MinComunication *iMinCom);
+	void calculateAC();
 	void calculateDC();
 	void calculate();
 	void sendToItem(MenuItem &Freq, MenuItem &Rms);
 	u16 AbsValue(u16 iValue, u16 iZeroOffset, bool iDC);
 	MinComunication *MinCom;
 
-	u16 *SigOk;
-	u16 *ADCavr;
-	u16 *ZeroOffset;
 
-	float RmsFactor;
-	bool *dataOk;
-u8 AcDc; //0=Ac, 1=Dc
 
-	u16 AbsAdc;
-
+	//float RmsFactor;
 	u16 AvValueRms;
 	u16 AvValueFreq;
 

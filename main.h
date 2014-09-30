@@ -95,13 +95,13 @@ typedef struct {
 	u16 ADCavr;     // <=Ch1_Adc
 	u8 mCurPos;     // <=Min
 	u16 ZeroOffset; // <=Cycle
-	u8 AC_DC;       // <=Cycle
+	u8 AC_DC;      //0=AC, 1=DC
 	bool DtU;       // <=Min
 	u16 SignalOk;   //<=Ch1_Adc
 	bool dataOk;    //<=Ch1_Adc
-
+	float RmsFactor;
 	u16 AbsAdc;     // <=FrRms.AbsAdc
-
+float Rms;
 
 
 

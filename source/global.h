@@ -12,7 +12,7 @@
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
 #include "cl_Min.h"
-static const float swVersion = 24;
+static const float swVersion = 25.00;
 
 
 
@@ -36,6 +36,7 @@ public:
 	u8 mCurPos;
 
 u16 cycle_cnt;
+u16 upd_cnt;
 
 	MenuManager Menu;
 	cl_Min oMin;

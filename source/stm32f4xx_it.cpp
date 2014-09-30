@@ -121,6 +121,8 @@ void PendSV_Handler(void)
  */
 void SysTick_Handler(void)
 {
+
+
 }
 
 void TIM4_IRQHandler(void)
@@ -158,10 +160,9 @@ void TIM5_IRQHandler(void)
 	if (TIM_GetITStatus(TIM5, TIM_IT_Update) != RESET)
 	{
 
-#ifdef USE_COMUNICATION_LED
-COMUNICATION_LED_PORT->BSRRH = COMUNICATION_LED_PIN;
 
-#endif
+
+		prg.Menu.Display();
 
 
 		TIM_ClearITPendingBit(TIM5, TIM_IT_Update);

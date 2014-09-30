@@ -1,9 +1,12 @@
 #include "user_conf.h"
 
 #include <cstring>
-eeprom::eeprom(void){}
+eeprom::eeprom(void)
+{
+}
 
-eeprom::eeprom(softSpi* Spi){
+eeprom::eeprom(softSpi* Spi)
+{
 	spiNum = Spi;
 
 }
@@ -29,28 +32,22 @@ uint8_t eeprom::readByte(u16 address)
 	return rcvByte;
 }
 
-float eeprom::readFloat(uint16_t address){
+float eeprom::readFloat(uint16_t address)
+{
 
 	u8 float_bytes[sizeof(float)];
 	float retval;
 
+	for (u8 i = 0; i < sizeof(float); i++)
+	{
+		float_bytes[i] = readByte(address++);
+	}
 
-		for (u8 i = 0; i < sizeof(float); i++)
-		{
-			float_bytes[i] = readByte(address++);
-		}
+	memcpy(&retval, float_bytes, sizeof(float));
 
-		memcpy(&retval, float_bytes, sizeof(float));
-
-		return retval;
-
-
+	return retval;
 
 }
-
-
-
-
 
 void eeprom::writeByte(uint16_t address, uint8_t data)
 {
@@ -86,7 +83,27 @@ void eeprom::writeFloat(uint16_t address, float data)
 		writeByte(address++, float_bytes[i]);
 	}
 
+}
 
+uint8_t eeprom::checkEmpty()
+{ u8 x;
+	for (u8 i = 0; i < 20;i++)
+	{
+		x = readByte(i);
+		if (x == 0xFF || x == 0x00)
+		{
+			if (i >= 19)
+			{
+				return 1;
+			}
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	return 0;
 }
 
 void eeprom::init()

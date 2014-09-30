@@ -13,30 +13,27 @@ AdcX::AdcX()
 
 }
 
-void AdcX::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset, ADC_TypeDef* ADC_N)
+void AdcX::init(MinComunication *iMinCom, ADC_TypeDef* ADC_N)
 {
-	dataOk = idDataOk;
-	SigOk = iSigOk;
-	ADCavr = iADCavr;
-	ZeroOffset = iZeroOffset;
+MinCom = iMinCom;
 	ADCx = ADC_N;
 	MaxAvrCount = 25;
 	i = 0;
 }
 
-void AdcX::sample(u8 iAcDc)
+void AdcX::sample()
 {
 	if (i >= MaxAvrCount)
 	{
 		//Calculate average adc value
-		*ADCavr = (ADCBuff / MaxAvrCount);
-		*dataOk = true;
+		MinCom->ADCavr = (ADCBuff / MaxAvrCount);
+		MinCom->dataOk = true;
 
-		if ((ADCx->DR > (*ZeroOffset + 33) || ADCx->DR < (*ZeroOffset - 33))|| iAcDc)
+		if (     (ADCx->DR > (MinCom->ZeroOffset + 60)) || (ADCx->DR < (MinCom->ZeroOffset - 60))    )
 		{
-			if (*SigOk < 15000)
+			if (MinCom->SignalOk < 15000)
 			{
-				*SigOk += 100;
+				MinCom->SignalOk += 100;
 			}
 		}
 
@@ -59,7 +56,7 @@ void AdcX::sample(u8 iAcDc)
 void AdcX::sendToItem(MenuItem &Adc)
 {
 
-	Adc.pValue = (float) *ADCavr;
+	Adc.pValue = (float) MinCom->ADCavr;
 
 
 }

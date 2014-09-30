@@ -21,8 +21,8 @@ public:
 	cl_Alarm();
 
 
-	void init();
-	void calculate(u8 Pos, u16 Adc);
+	void init(MinComunication *iMinCom);
+	void calculate();
 
     GPIO_TypeDef *ledGpioX;
     uint16_t ledGpioPin;
@@ -41,19 +41,21 @@ public:
 
 	u8 invOut;
 	u8 setOut;
-	u8 *AcDc; // 0=AC, 1 = DC
-	u8 tOut;
+	//u8 *AcDc; // 0=AC, 1 = DC
+	u8 tmpOut;
 	u8 out;
 u8 led;
 
 	u16 cntAvrage;
-	float factor;
+	//float factor;
 	float dcVal; //Calculated value
 	float acVal; //Calculated value
 
 	float minValue;
 	float maxValue;
 	float avrAl;
+
+	u16 cntUpdOver;
 
 
 		u32 cmpVal; //setpoint value

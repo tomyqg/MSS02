@@ -36,7 +36,7 @@ void Averaging::setMaxCount(u16 Value)
 
 float Averaging::avr(float Value)
 {
-	float tAvr = 0.f;
+	float tAvr = 0.0f;
 	if (maxCount)
 	{
 		if (countValue >= maxCount - 1)
