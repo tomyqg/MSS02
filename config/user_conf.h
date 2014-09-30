@@ -27,6 +27,7 @@
 #include "cl_FrRms.h"
 #include "clAlarm.h"
 #include "Averaging.h"
+#include "Filter.h"
 
 //#include "cl_Min.h"
 

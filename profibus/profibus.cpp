@@ -57,7 +57,7 @@ void initProfibus(void)
 	group = 0;
 
 	//Set slave address
-	slave_addr = 1; //Set Slave Address
+	slave_addr = 3; //Set Slave Address
 
 	// If slave address not set or bad
 	if ((slave_addr == 0) || (slave_addr > 126))

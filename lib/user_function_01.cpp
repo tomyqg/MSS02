@@ -46,7 +46,7 @@ void initProfibusTimer(void)
 
 
 	TimeBaseInit_Structure.TIM_Prescaler = 83;
-	TimeBaseInit_Structure.TIM_Period = 103;
+	TimeBaseInit_Structure.TIM_Period = 34;//103
 	TimeBaseInit_Structure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TimeBaseInit_Structure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(PROFIBUS_TIMER, &TimeBaseInit_Structure);
@@ -56,8 +56,8 @@ void initProfibusTimer(void)
 	TIM_ITConfig(PROFIBUS_TIMER, TIM_IT_Update, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = PROFIBUS_TIMER_IRQn;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 2;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 6;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 2;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 
@@ -106,8 +106,8 @@ void initProfibusUsart(void)
 	USART_ITConfig(MODBUS_USART, USART_IT_RXNE, ENABLE);
 
 	NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_USART_IRQN;
-	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 0;
-	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 6;
+	NVIC_Init_Structure.NVIC_IRQChannelSubPriority = 1;
 	NVIC_Init_Structure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_Init_Structure);
 	NVIC_EnableIRQ(MODBUS_USART_IRQN);

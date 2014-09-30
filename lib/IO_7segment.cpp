@@ -74,7 +74,7 @@ void IO_7segment::DigitWrite(u8 value, bool point, u8 CurrDigit)
 	{
 		Digit[i].Port->BSRRH = Digit[i].Pin;
 	}
-	delayMicroseconds(5);
+	delayMicroseconds(15);
 	(value & 0x01) ? GpioIO.A.Port->BSRRL = GpioIO.A.Pin : GpioIO.A.Port->BSRRH = GpioIO.A.Pin;
 	(value & 0x02) ? GpioIO.B.Port->BSRRL = GpioIO.B.Pin : GpioIO.B.Port->BSRRH = GpioIO.B.Pin;
 	(value & 0x04) ? GpioIO.C.Port->BSRRL = GpioIO.C.Pin : GpioIO.C.Port->BSRRH = GpioIO.C.Pin;

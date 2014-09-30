@@ -16,32 +16,29 @@ cl_Alarm::cl_Alarm()
 
 }
 
-void cl_Alarm::init()
+void cl_Alarm::init(MinComunication *iMinCom)
 {
-
+	MinCom = iMinCom;
 	SelectMode = 0; // 0 = None, 1=Alarm, 2=ZeroLine, 3=OverFull, 4=Protocol
 
 	invOut = 0;
 	setOut = 0;
-	AcDc = 0; // 0=AC, 1=DC
 
 	out = 0;
-	tOut = 0;
+	tmpOut = 0;
 
 	cntAvrage = 0;
-	factor = 1.0;
 
 	minValue = 0.0;
 	maxValue = 4000;
 	avrAl = 10;
 
-
-	cmpVal=0; //setpoint value
-	p=1 ;     //one cycle var
+	cmpVal = 0; //setpoint value
+	p = 1;     //one cycle var
 
 }
 
-void cl_Alarm::calculate(u8 Pos, u16 Adc)
+void cl_Alarm::calculate()
 {
 
 	switch (SelectMode)
@@ -51,76 +48,96 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 		if ((inGpioX->IDR & inGpioPin) != (uint32_t) Bit_RESET)
 		{
 			if (!setOut)
-				tOut = 0;
+				tmpOut = 0;
 		}
 		else
 		{
-			tOut = 1;
+			tmpOut = 1;
 		}
 
 		break;
 
 	case 2: //Zero Line
-		tOut = Pos;
+		if (MinCom->SignalOk)
+		{
+			tmpOut = MinCom->mCurPos;
+		}
+		else
+		{
+			tmpOut = 0;
+		}
 		break;
 
 	case 3: //OverFull
 
-		if (*AcDc)
+		if (cntUpdOver >= 0)
 		{
-			dcVal = ((float) Adc);// * sqrt2);TODO very load proc if usr sqrt
-
-			if ((dcVal > maxValue) || (dcVal < minValue))
+			if (MinCom->AC_DC)
 			{
-				if (cntAvrage >= ((u16) avrAl))
+				s16 tAbsAdc;
+				tAbsAdc = (s16) MinCom->AbsAdc;
+				if (MinCom->ADCavr < MinCom->ZeroOffset)
+					tAbsAdc = tAbsAdc * (-1);
+				if (MinCom->SignalOk > 0)
 				{
-					tOut = 1;
+					dcVal = (float) tAbsAdc * MinCom->RmsFactor; //TODO very load proc if usr sqrt
 				}
 				else
 				{
-					++cntAvrage;
+					dcVal = 0.0f;
 				}
-			}
-			else
-			{
-				if (!setOut)
+				if ((dcVal > maxValue) || (dcVal < minValue))
 				{
-					tOut = 0;
-					cntAvrage = 0;
-				}
-
-			}
-
-		}
-		else
-		{
-			acVal = (float) Adc * sqrt2;
-
-
-
-			if ((acVal > maxValue) || (acVal < minValue))
-			{
-				if (cntAvrage >= (u16) avrAl)
-				{
-					tOut = 1;
+					if (cntAvrage >= ((u16) avrAl))
+					{
+						tmpOut = true;
+					}
+					else
+					{
+						++cntAvrage;
+					}
 				}
 				else
 				{
-					cntAvrage++;
+					if (!setOut)
+					{
+						tmpOut = 0;
+						cntAvrage = 0;
+					}
+
 				}
+
 			}
 			else
 			{
-				if (!setOut)
+				acVal = (float) MinCom->AbsAdc * MinCom->RmsFactor / 1.41f; // /17.15f;
+
+				if ((acVal > maxValue) || (MinCom->Rms > maxValue) || (MinCom->Rms < minValue))
 				{
-					tOut = 0;
-					cntAvrage = 0;
+					if (cntAvrage >= (u16) avrAl)
+					{
+						tmpOut = true;
+					}
+					else
+					{
+						cntAvrage++;
+					}
+				}
+				else
+				{
+					if (!setOut)
+					{
+						tmpOut = 0;
+						cntAvrage = 0;
+					}
+
 				}
 
 			}
+			cntUpdOver = 0;
 
 		}
-
+		cntUpdOver++;
 		break;
 
 	case 4: //Soft output
@@ -134,20 +151,18 @@ void cl_Alarm::calculate(u8 Pos, u16 Adc)
 
 	if (invOut)
 	{
-		tOut = !tOut;
+		tmpOut = !tmpOut;
 	}
 
 	if (SelectMode == 2)
 	{
-		out = tOut;
+		out = tmpOut;
 	}
 	else
 	{
-		out = tof(tOut, 5,p,cmpVal);
+		out = tof(tmpOut, 5, p, cmpVal);
+		//out = tmpOut;
 	}
-
-
-
 
 	if (out)
 	{

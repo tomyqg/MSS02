@@ -22,9 +22,9 @@ public:
 
 	u16 maxCount;
 	u16 countValue;
-	u16 Valid;
-//	float *arr;
-	std::vector <float> vArr;
+	float tAvr;
+	float actAvr;
+
 
 };
 

@@ -170,7 +170,9 @@ void MenuManager::Up(bool input)
 						{
 							if (group[0].mCurrItem->m_incr == 0) //default increment 0.001
 							{
+
 								pValue += 0.001 * x * m_Speed;
+
 							}
 							else
 							{
@@ -295,7 +297,7 @@ void MenuManager::delayScroll(bool input, bool &fp)
 	{
 		scrollCounter[0]++;
 
-		if (scrollCounter[0] > 600)
+		if (scrollCounter[0] > 150)
 		{
 			if (m_EditMode)
 			{
@@ -312,27 +314,27 @@ void MenuManager::delayScroll(bool input, bool &fp)
 		}
 
 		//Speed 1
-		if (scrollCounter[1] > 5)
+		if (scrollCounter[1] > 10)
 		{
 			m_Speed = 5;
 		}
 		//Speed 2
-		if (scrollCounter[1] > 25)
+		if (scrollCounter[1] > 30)
 		{
 			m_Speed = 10;
 		}
 		//Speed 3
-		if (scrollCounter[1] > 40)
+		if (scrollCounter[1] > 50)
 		{
 			m_Speed = 50;
 		}
 		//Speed 4
-		if (scrollCounter[1] > 50)
+		if (scrollCounter[1] > 70)
 		{
 			m_Speed = 100;
 		}
 		//Speed 5
-		if (scrollCounter[1] > 70)
+		if (scrollCounter[1] > 100)
 		{
 			m_Speed = 500;
 		}
@@ -358,7 +360,7 @@ void MenuManager::delaySelect(bool input, bool &fp)
 	{
 		scrollCounter[0]++;
 
-		if (scrollCounter[0] > 500)
+		if (scrollCounter[0] > 120)
 		{
 			scrollCounter[1]++;
 			scrollCounter[0] = 0;
@@ -517,11 +519,18 @@ void MenuManager::Display()
 void MenuManager::TimerReset(bool input)
 {
 
-	static bool p = 0;
-	static u32 ResetTime = 0;
+	static bool p = 1;
+	static u32 ResetTime =RTC->TR + MENU_RESET_TIME; ;
 
 	if (input == true) //input signal on
 	{
+		ResetTime = RTC->TR + MENU_RESET_TIME;
+		p = false;
+
+	}
+	else
+	{
+
 		if (p == false) //first cycle
 		{
 			ResetTime = RTC->TR + MENU_RESET_TIME; //set on-value
@@ -539,13 +548,8 @@ void MenuManager::TimerReset(bool input)
 					selectRoot();
 				}
 			}
-
 		} //other cycle
 
-	} //input signal on
-	else
-	{
-		p = false;
 	}
 
 }
@@ -589,6 +593,21 @@ void MenuManager::selectItemNum(u8 gr)
 
 }
 
+
+
+void MenuManager::systemRestart(MenuItem &Trg)
+{
+
+	if (Trg.getValue())
+	{
+		Trg.setValue(0.0);
+		Flash.writeFloat(Trg.getAddr(), 0.0);
+
+
+		NVIC_SystemReset();
+	}
+}
+
 void MenuManager::changeItem(MenuItem &Trg, MenuItem &Dst, MenuItem Src)
 {
 
@@ -601,17 +620,6 @@ void MenuManager::changeItem(MenuItem &Trg, MenuItem &Dst, MenuItem Src)
 		Flash.writeFloat(Trg.getAddr(), Trg.pValue);
 		Flash.writeFloat(Dst.getAddr(), Dst.pValue);
 
-	}
-}
-
-void MenuManager::systemRestart(MenuItem &Trg)
-{
-
-	if (Trg.getValue())
-	{
-		Trg.setValue(0.0);
-		Flash.writeFloat(Trg.getAddr(), 0.0);
-		NVIC_SystemReset();
 	}
 }
 

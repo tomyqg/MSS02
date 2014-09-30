@@ -11,7 +11,7 @@
 
 #include "stm32f4xx_conf.h"
 #include "user_conf.h"
-
+#include "Filter.h"
 /*
  *@autor static
  */
@@ -23,29 +23,22 @@ class cl_Min
 public:
 	cl_Min();
 	void init(MenuItem *tXXX);
-	inline bool DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk, u8 &pos, u16 &lastVal);
+	bool DwnToUp(MinComunication *MinCom, u8 &pos, u16 &lastVal);
 	void Calculate();
 
 
 	MinComunication MinCom_Ch_1;
 	MinComunication MinCom_Ch_2;
 
-	u16 ADCavr[2];
-	u8 mCurPos[2];
-	u16 ZeroOffset[2];
-	u8 AC_DC[2];
-	bool DtU[2]; //Zero-crossing
-	u16 SignalOk[2];
-	bool dataOk[2];
+
 
 
 	Averaging AvCos;
 
 
-
 	MenuItem *tMIN;
-
-
+	 Filter *fr;
+u16 *arrx;
 
 
 
@@ -75,6 +68,7 @@ u8 tpos[2];
 	float cos;
 	float tcos;
 	float AvrCos;
+	u8 cosMode; //0=Off, 1=cosinus, 2=sync
 
 
 };

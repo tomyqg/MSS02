@@ -7,28 +7,23 @@
  */
 
 #include "cl_Min.h"
+#include <stdio.h>
 
-cl_Min::cl_Min()
-{
+cl_Min::cl_Min() {
+
+
 }
 
-void cl_Min::init(MenuItem *tXXX)
-{
+void cl_Min::init(MenuItem *tXXX) {
+
+
 	tMIN = tXXX;
 
-	Ch1_Adc.MinCom = &MinCom_Ch_1;
-	Ch1_FrRms.MinCom = &MinCom_Ch_1;
-	Ch1_Alarm.MinCom = &MinCom_Ch_1;
+	Ch1_Adc.init(&MinCom_Ch_1, ADC1);
+	Ch1_FrRms.init(&MinCom_Ch_1);
 
-
-
-	Ch1_FrRms.init(&dataOk[0], &SignalOk[0], &ADCavr[0], &ZeroOffset[0]);
-	Ch2_FrRms.init(&dataOk[1], &SignalOk[1], &ADCavr[1], &ZeroOffset[1]);
-	Ch1_Adc.init(&dataOk[0], &SignalOk[0], &ADCavr[0], &ZeroOffset[0], ADC1);
-	Ch2_Adc.init(&dataOk[1], &SignalOk[1], &ADCavr[1], &ZeroOffset[1], ADC2);
-
-	Ch1_Alarm.AcDc = &AC_DC[0];
-	Ch2_Alarm.AcDc = &AC_DC[1];
+	Ch2_Adc.init(&MinCom_Ch_2, ADC2);
+	Ch2_FrRms.init(&MinCom_Ch_2);
 
 	Ch1_Alarm.ledGpioX = GPIOC;
 	Ch1_Alarm.ledGpioPin = GPIO_Pin_1;
@@ -39,7 +34,7 @@ void cl_Min::init(MenuItem *tXXX)
 	Ch1_Alarm.inGpioX = GPIOB;
 	Ch1_Alarm.inGpioPin = GPIO_Pin_14;
 
-	Ch1_Alarm.init();
+	Ch1_Alarm.init(&MinCom_Ch_1);
 
 	Ch2_Alarm.ledGpioX = GPIOC;
 	Ch2_Alarm.ledGpioPin = GPIO_Pin_2;
@@ -53,123 +48,114 @@ void cl_Min::init(MenuItem *tXXX)
 	inGpioPort = GPIOD;
 	inGpioPin = GPIO_Pin_2;
 
-	Ch2_Alarm.init();
+	Ch2_Alarm.init(&MinCom_Ch_2);
+
+	cosMode = 0;
 
 }
 
-//TODO not end
-bool cl_Min::DwnToUp(u16 Value, u8 &mCurrPos, u16 ZeroOffset, u16 iSignalOk, u8 &pos, u16 &lastVal)
-{
 
-	if (Value > lastVal + 20)
+
+bool cl_Min::DwnToUp(MinComunication *MinCom, u8 &pos, u16 &lastVal) {
+
+	if (MinCom->ADCavr > lastVal + 20)
 		pos = 1;
-	if (Value < lastVal - 20)
+	if (MinCom->ADCavr < lastVal - 20)
 		pos = 0;
 
-	lastVal = Value;
+	lastVal = MinCom->ADCavr;
 
-	if (Value > (ZeroOffset - 400) && pos == 1)
-	{
-		if (mCurrPos == 0)
-		{
-			mCurrPos = 1;
+	if (MinCom->ADCavr > (MinCom->ZeroOffset - 400) && pos == 1) {
+		if (MinCom->mCurPos == 0) {
+			MinCom->mCurPos = 1;
 			return true;
 		}
-		mCurrPos = 1;
+		MinCom->mCurPos = 1;
 	}
 
-	if (((Value < ZeroOffset + 400) &&(pos==0)) || !iSignalOk)
-		mCurrPos = 0;
+	if (((MinCom->ADCavr < MinCom->ZeroOffset + 400) && (pos == 0))
+			|| !MinCom->SignalOk)
+		MinCom->mCurPos = 0;
 
 	return false;
 
 }
 
+void cl_Min::Calculate() {
 
 
 
 
+	Ch1_Adc.sample();
+	MinCom_Ch_1.DtU = DwnToUp(&MinCom_Ch_1, tpos[0], tLastVal[0]);
+	Ch1_FrRms.calculate();
 
-void cl_Min::Calculate()
-{
+//	printf("%d \r",Ch1_FrRms.cntPerPeriod);
 
-	Ch1_Adc.sample(AC_DC[0]);
-	DtU[0] = DwnToUp(ADCavr[0], mCurPos[0], ZeroOffset[0], SignalOk[0], tpos[0], tLastVal[0]);
+	Ch1_Alarm.calculate();
 
+	Ch2_Adc.sample();
+	MinCom_Ch_2.DtU = DwnToUp(&MinCom_Ch_2, tpos[1], tLastVal[1]);
+	Ch2_FrRms.calculate();
+	Ch2_Alarm.calculate();
 
-	//Select type of current channel 1
-	if (AC_DC[0])
+	switch (cosMode)
 	{
-		Ch1_FrRms.calculateDC();
-	}
-	else
-	{
-		Ch1_FrRms.calculateAC(DtU[0]);
-	}
-
-	Ch1_Alarm.calculate(mCurPos[0], Ch1_FrRms.AbsAdc);
-
-
-
-	Ch2_Adc.sample(AC_DC[1]);
-	DtU[1] = DwnToUp(ADCavr[1], mCurPos[1], ZeroOffset[1], SignalOk[1], tpos[1], tLastVal[1]);
-
-	//Select type of current channel 2
-	if (AC_DC[1])
-	{
-		Ch2_FrRms.calculateDC();
-	}
-	else
-	{
-		Ch2_FrRms.calculateAC(DtU[1]);
-	}
-	Ch2_Alarm.calculate(mCurPos[1], Ch2_FrRms.AbsAdc);
-
-
-
-
-
-	//if 1 and 2 chanal is AC
-	if (!AC_DC[0] && !AC_DC[1])
-	{
-		//Calculate COS
-		if (DtU[0])
-		{
-			cntCos = 1;
-		}
-		if (DtU[1])
-		{
-
-			if (cntCos > Ch1_FrRms.cntPerPeriod)
-				cntCos = Ch1_FrRms.cntPerPeriod - cntCos;
-			if (Ch1_FrRms.cntPerPeriod)
-			{
-				if (cntCos >= (Ch1_FrRms.cntPerPeriod / 2))
-				{
-					tcos = (float) cntCos / ((float) Ch1_FrRms.cntPerPeriod / 2.0f);
-					tcos = tcos - 1;
-					tcos *= -1.0f;
-
-				}
-				else
-				{
-					tcos = (float) cntCos / ((float) Ch1_FrRms.cntPerPeriod / 2.0f);
-					tcos = (1.0f - tcos);
-				}
-
-				if (tcos <= 1.0f && tcos >= -0.999f)
-					cos = tcos;
-
-				cntCos++;
-			}
-			AvrCos = AvCos.avr(cos);
-		}
-
-		cntCos++;
-	}
-	else
-	{
+	case 0:
 		AvrCos = 0.0f;
+		break;
+	case 1:
+		//if 1 and 2 chanal is AC
+		if (!MinCom_Ch_1.AC_DC && !MinCom_Ch_2.AC_DC && MinCom_Ch_1.SignalOk > 0 && MinCom_Ch_2.SignalOk > 0)
+		{
+			//Calculate COS
+			if (MinCom_Ch_1.DtU)
+			{
+				cntCos = 1;
+			}
+			if (MinCom_Ch_2.DtU)
+			{
+
+				if (cntCos > Ch1_FrRms.cntPerPeriod)
+					cntCos = Ch1_FrRms.cntPerPeriod - cntCos;
+				if (Ch1_FrRms.cntPerPeriod)
+				{
+					if (cntCos >= (Ch1_FrRms.cntPerPeriod / 2))
+					{
+						tcos = (float) cntCos / ((float) Ch1_FrRms.cntPerPeriod / 2.0f);
+						tcos = tcos - 1;
+						tcos *= -1.0f;
+
+					}
+					else
+					{
+						tcos = (float) cntCos / ((float) Ch1_FrRms.cntPerPeriod / 2.0f);
+						tcos = (1.0f - tcos);
+					}
+
+					if (tcos <= 1.0f && tcos >= -0.999f)
+						cos = tcos;
+
+					cntCos++;
+				}
+				AvrCos = AvCos.avr(cos);
+			}
+
+			cntCos++;
+		}
+		else
+		{
+			AvrCos = 0.0f;
+		}
+		break;
+	case 2:
+		AvrCos = 0.0f;
+		break;
+
+	default:
+		AvrCos = 0.0f;
+		break;
+
 	}
 
 	if ((inGpioPort->IDR & inGpioPin) != 0)
@@ -184,4 +170,5 @@ void cl_Min::Calculate()
 	if (!inputReverse)
 		inputValue = !inputValue;
 
+//	GPIO_ResetBits(GPIOC, GPIO_Pin_2);
 }

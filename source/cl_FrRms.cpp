@@ -10,7 +10,7 @@
 #include <Averaging.h>
 
 // Calc absolute value of the ADC
-u16 FrRms::AbsValue(u16 iValue, u16 iZeroOffset, bool iDC=0)
+u16 FrRms::AbsValue(u16 iValue, u16 iZeroOffset, bool iDC = 0)
 {
 	if (iValue >= iZeroOffset)
 	{
@@ -21,7 +21,7 @@ u16 FrRms::AbsValue(u16 iValue, u16 iZeroOffset, bool iDC=0)
 	{
 		if (iDC)
 		{
-			return (iZeroOffset - iValue) ;
+			return (iZeroOffset - iValue);
 		}
 		else
 		{
@@ -36,35 +36,36 @@ FrRms::FrRms()
 
 }
 
-void FrRms::init(bool *idDataOk, u16 *iSigOk, u16 *iADCavr, u16 *iZeroOffset)
+void FrRms::init(MinComunication *iMinCom)
 {
-	dataOk = idDataOk;
-	SigOk = iSigOk;
-	ADCavr = iADCavr;
-	ZeroOffset = iZeroOffset;
-	factor = 0.0000100600;
-	RmsFactor = 0.0;
-	AbsAdc=0;
+	MinCom = iMinCom;
+	factor = 0.00005012;
+	//factor = 0.00001025;
 
 
 }
 
-void FrRms::calculateAC(bool DtU)
+void FrRms::calculateAC()
 {
+
+
 	//Amplitude of signal above the minimum
-	if (*SigOk > 0)
+	if (MinCom->SignalOk > 0)
 	{
+
+
 		//Zero-crossing
-		if (DtU)
+		if (MinCom->DtU)
 		{
+
 			//Calculate frequency
 			Freq = (1 / ((float) tCntPerPeriod * factor));
 
 			//Averaging of the current frequency
 			avrFreq = AvFreq.avr(Freq);
-
+			//avrFreq = Freq;
 			//Calculate RMS
-			Rms = (sqrtf((((float) sumRms) * 2) / ((float) tCntPerPeriod))) * RmsFactor;
+			Rms = (sqrtf((((float) sumRms) * 2) / ((float) tCntPerPeriod))) * MinCom->RmsFactor;
 
 			//Averaging of the RMS
 			avrRms = AvRms.avr(Rms);
@@ -76,41 +77,42 @@ void FrRms::calculateAC(bool DtU)
 		}
 		else
 		{
-			// Calc absolute value of the ADC
-			AbsAdc = AbsValue(*ADCavr, *ZeroOffset);
+			 //Calc absolute value of the ADC
+			MinCom->AbsAdc = AbsValue(MinCom->ADCavr, MinCom->ZeroOffset);
 
-			sumRms += (AbsAdc * AbsAdc) / 2;
+			sumRms += (MinCom->AbsAdc * MinCom->AbsAdc) / 2;
 			tCntPerPeriod++;
 		}
 
-		*SigOk = *SigOk - 1;
+		MinCom->SignalOk = MinCom->SignalOk - 1;
 	}
 	else
 	{
+	    AvFreq.avr(0.0);
+	        AvRms.avr(0.0);
 		avrFreq = 0.0f;
 		avrRms = 0.0f;
 		Rms = 0.0f;
 		Freq = 0.0f;
 
-
 	}
-
-	*dataOk = false;
+	MinCom->Rms = avrRms;
+	MinCom->dataOk = false;
 
 }
 
 void FrRms::calculateDC()
 {
 	//Amplitude of signal above the minimum
-	if (*SigOk > 0)
+	if (MinCom->SignalOk > 0)
 	{
 		if (DcCounter >= 2000)
 		{
 			//Calculate RMS
 			Rms = sqrtf((((float) sumRms) * 2) / ((float) tCntPerPeriod));
-			Rms *= RmsFactor * 1.414;
+			Rms *= MinCom->RmsFactor;
 
-			if (*ADCavr < *ZeroOffset)
+			if (MinCom->ADCavr < MinCom->ZeroOffset)
 				Rms *= -1.0f;
 
 			avrRms = AvRms.avr(Rms);
@@ -126,13 +128,14 @@ void FrRms::calculateDC()
 			tCntPerPeriod++;
 
 			// Calc absolute value of the ADC
-			AbsAdc = AbsValue(*ADCavr, *ZeroOffset,true);
-			sumRms += (AbsAdc * AbsAdc) / 2;
+			MinCom->AbsAdc = AbsValue(MinCom->ADCavr, MinCom->ZeroOffset, true);
+			sumRms += (MinCom->AbsAdc * MinCom->AbsAdc) / 2;
 
 			DcCounter++;
 		}
 
-		*SigOk = *SigOk-1;; //decrease SigOk
+		MinCom->SignalOk = MinCom->SignalOk - 1;
+		; //decrease SigOk
 	}
 	else
 	{
@@ -140,16 +143,22 @@ void FrRms::calculateDC()
 		avrRms = 0.0;
 		Rms = 0.0;
 	}
-
-	*dataOk = false;
+	MinCom->Rms = avrRms;
+	MinCom->dataOk = false;
 }
 
-
-void FrRms::calculate(){
-
+void FrRms::calculate()
+{
+	if (MinCom->AC_DC)
+	{
+		calculateDC();
+	}
+	else
+	{
+		calculateAC();
+	}
 
 }
-
 
 void FrRms::sendToItem(MenuItem &iFreq, MenuItem &iRms)
 {
