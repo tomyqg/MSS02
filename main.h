@@ -128,7 +128,7 @@ float Rms;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define BUFF_SIZE 100 //Modbus table size
-#define UART_BUFFER_SIZE 50
+#define UART_BUFFER_SIZE 16
 #define USE_COMUNICATION_LED
 #define COMUNICATION_LED_PORT      GPIOC
 #define COMUNICATION_LED_PIN       GPIO_Pin_0

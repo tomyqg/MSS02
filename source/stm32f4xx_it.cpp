@@ -242,18 +242,19 @@ void USART6_IRQHandler(void)
 	if (USART_GetITStatus(PROFIBUS_USART, USART_IT_IDLE) != RESET)
 	{
 
+
+		uart_byte_cnt = UART_BUFFER_SIZE - DMA_GetCurrDataCounter(DMA2_Stream1);
+
 		NVIC_DisableIRQ(MODBUS_USART_IRQN);
 		USART_ClearITPendingBit(PROFIBUS_USART, USART_SR_IDLE);
 
 
 		DMA_Cmd(DMA2_Stream1, DISABLE);
-		uart_byte_cnt = UART_BUFFER_SIZE - DMA_GetCurrDataCounter(DMA2_Stream1);
-		profibus_RX();
-		DMA_SetCurrDataCounter(DMA2_Stream1, UART_BUFFER_SIZE);
-		DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
+		DMA_SetCurrDataCounter(DMA2_Stream1, UART_BUFFER_SIZE);//UART_BUFFER_SIZE);
 		DMA_Cmd(DMA2_Stream1, ENABLE);
+		DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
 
-		//prg.mbs_Slave.update(prg.mbs_table, BUFF_SIZE);
+		prg.mbs_Slave.update(prg.mbs_table, BUFF_SIZE);
 
 	}
 

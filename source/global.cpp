@@ -101,55 +101,58 @@ global::init (void)
 //	initModbusTimer();
   initModbusUsart ();
 
-  DMA_InitTypeDef DMA_InitStructure;
-  RCC_AHB1PeriphClockCmd (RCC_AHB1Periph_DMA2, ENABLE);
-  DMA_DeInit (DMA2_Stream1);
+  DMA_InitTypeDef  DMA_InitStructure;
+ 	     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
+ 	    DMA_DeInit(DMA2_Stream1);
 
-  DMA_InitStructure.DMA_Channel = DMA_Channel_5;
-  DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory; // Receive
-  DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t) uart_buffer;
-  DMA_InitStructure.DMA_BufferSize = UART_BUFFER_SIZE;
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) (&(USART6->DR));
-  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-  DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Circular; //
-  DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-  DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
-  DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
-  DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-  DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+ 	    DMA_InitStructure.DMA_Channel = DMA_Channel_5;
+ 	    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory; // Receive
+ 	    DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)uart_buffer;
+ 	    DMA_InitStructure.DMA_BufferSize = UART_BUFFER_SIZE;
+ 	    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) (&(USART6->DR));
+ 	    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+ 	    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+ 	    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+ 	    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+ 	    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular; //
+ 	    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+ 	    DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
+ 	    DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
+ 	    DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+ 	    DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 
-  DMA_Init (DMA2_Stream1, &DMA_InitStructure);
+ 	    DMA_Init(DMA2_Stream1, &DMA_InitStructure);
 
-  /* Enable the USART Rx DMA request */
-  USART_DMACmd (USART6, USART_DMAReq_Rx, ENABLE);
+ 	    /* Enable the USART Rx DMA request */
+ 	    USART_DMACmd(USART6, USART_DMAReq_Rx, ENABLE);
 
-  /* Enable DMA Stream Half Transfer and Transfer Complete interrupt */
-  DMA_ITConfig (DMA2_Stream1, DMA_IT_TC, ENABLE);
-  DMA_ITConfig (DMA2_Stream1, DMA_IT_HT, ENABLE);
+ 	    /* Enable DMA Stream Half Transfer and Transfer Complete interrupt */
+ 	    DMA_ITConfig(DMA2_Stream1, DMA_IT_TC, ENABLE);
+ 	    DMA_ITConfig(DMA2_Stream1, DMA_IT_HT, ENABLE);
 
-  /* Enable the DMA RX Stream */
-  DMA_Cmd (DMA2_Stream1, ENABLE);
+ 	    /* Enable the DMA RX Stream */
+ 	    DMA_Cmd(DMA2_Stream1, ENABLE);
 
-  NVIC_InitTypeDef NVIC_InitStructure;
 
-  /* Configure the Priority Group to 2 bits */
-  NVIC_PriorityGroupConfig (NVIC_PriorityGroup_2);
 
-  /* Enable the UART4 RX DMA Interrupt */
-  NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream1_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init (&NVIC_InitStructure);
+
+ 	    NVIC_InitTypeDef NVIC_InitStructure;
+
+ 	      /* Configure the Priority Group to 2 bits */
+ 	      NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+ 	      /* Enable the UART4 RX DMA Interrupt */
+ 	      NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream1_IRQn;
+ 	      NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+ 	      NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+ 	      NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 	      NVIC_Init(&NVIC_InitStructure);
 
   mbs_Slave.configureAddress ((u8) SYS[3].getValue ());
 
   //  initProfibusTimer();
   //	initProfibusUsart();
-  	initProfibus();
+  //	initProfibus();
 
   NVIC_InitTypeDef NVIC_Init_Structure;
   TIM_TimeBaseInitTypeDef TimeBaseInit_Structure;
@@ -225,7 +228,7 @@ global::initModbusUsart (void)
   GPIO_Init_Structure.GPIO_Pin = MODBUS_USART_RX_PIN;
   GPIO_Init (MODBUS_USART_RX_PORT, &GPIO_Init_Structure);
 
-  USART_Init_Structure.USART_BaudRate = 500000;// UART_SPEED;
+  USART_Init_Structure.USART_BaudRate =  UART_SPEED;
   USART_Init_Structure.USART_WordLength = MODBUS_USART_WORDLENGTH;
   USART_Init_Structure.USART_StopBits = MODBUS_USART_STOPBITS;
   USART_Init_Structure.USART_Parity = MODBUS_USART_PARITY;
