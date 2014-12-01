@@ -60,6 +60,7 @@ void TIM2_IRQHandler(void);
 void TIM4_IRQHandler(void);
 void TIM5_IRQHandler(void);
 bool DwnToUp(u16 Value);
+void DMA2_Stream1_IRQHandler(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

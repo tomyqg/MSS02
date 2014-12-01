@@ -17,8 +17,6 @@ u16 uart_byte_cnt;                // uart receive byte counter
 //Profibus slave variables
 extern u8 profibus_status;
 
-
-
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -122,7 +120,6 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
 
-
 }
 
 void TIM4_IRQHandler(void)
@@ -131,8 +128,8 @@ void TIM4_IRQHandler(void)
 	if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
 	{
 
-prg.itSampleADC();
-prg.itCalcFreq();
+		prg.itSampleADC();
+		prg.itCalcFreq();
 
 		TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
 	}
@@ -145,14 +142,10 @@ void TIM2_IRQHandler(void)
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
 	{
 
-
-
-
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 	}
 
 }
-
 
 void TIM5_IRQHandler(void)
 {
@@ -160,16 +153,12 @@ void TIM5_IRQHandler(void)
 	if (TIM_GetITStatus(TIM5, TIM_IT_Update) != RESET)
 	{
 
-
-
 		prg.Menu.Display();
-
 
 		TIM_ClearITPendingBit(TIM5, TIM_IT_Update);
 	}
 
 }
-
 
 /**
  * Modbus/Profibus timer
@@ -186,11 +175,8 @@ void TIM3_IRQHandler(void)
 				prg.mbs_Slave.update(prg.mbs_table, BUFF_SIZE);
 				uart_byte_cnt = 0;
 
-
 			}
 			MODBUS_TIMER->CNT = 0;
-
-
 
 		}
 		else
@@ -240,8 +226,6 @@ void TIM3_IRQHandler(void)
 
 		}
 
-
-
 		TIM_ClearITPendingBit(PROFIBUS_TIMER, TIM_IT_Update);
 	}
 
@@ -252,48 +236,54 @@ void TIM3_IRQHandler(void)
  */
 void USART6_IRQHandler(void)
 {
-	if (USART_GetITStatus(PROFIBUS_USART, USART_IT_RXNE) != RESET)
+
+	u8 len;
+
+	if (USART_GetITStatus(PROFIBUS_USART, USART_IT_IDLE) != RESET)
 	{
 
-		if (USE_MODBUS)
-		{
-			uart_buffer[uart_byte_cnt] = (uint8_t) MODBUS_USART->DR;
-			uart_byte_cnt++;
-			MODBUS_TIMER->CNT = 0;
-		}
-		else
-		{
+		NVIC_DisableIRQ(MODBUS_USART_IRQN);
+		USART_ClearITPendingBit(PROFIBUS_USART, USART_SR_IDLE);
 
-			// Profibus timer reset
-			PROFIBUS_TIMER->CNT = 0;
 
-			// Save first byte in buffer
-			uart_buffer[uart_byte_cnt] = USART_ReceiveData(PROFIBUS_USART);
+		DMA_Cmd(DMA2_Stream1, DISABLE);
+		uart_byte_cnt = UART_BUFFER_SIZE - DMA_GetCurrDataCounter(DMA2_Stream1);
+		profibus_RX();
+		DMA_SetCurrDataCounter(DMA2_Stream1, UART_BUFFER_SIZE);
+		DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
+		DMA_Cmd(DMA2_Stream1, ENABLE);
 
-			// Only read if TSYN expired
-			if (profibus_status == PROFIBUS_WAIT_DATA)
-			{
+		//prg.mbs_Slave.update(prg.mbs_table, BUFF_SIZE);
 
-				// TSYN expired, read data
-				profibus_status = PROFIBUS_GET_DATA;
-			}
-
-			// Reading allowed?
-			if (profibus_status == PROFIBUS_GET_DATA)
-			{
-				uart_byte_cnt++;
-
-				//Read no more than fits into buffer
-				if (uart_byte_cnt == MAX_BUFFER_SIZE)
-					uart_byte_cnt--;
-			}
-
-			// Profibus timer reset
-			PROFIBUS_TIMER->CNT = 0;
-		}
-
-		USART_ClearITPendingBit(PROFIBUS_USART, USART_SR_RXNE);
 	}
+
+}
+
+void DMA2_Stream1_IRQHandler(void)
+{
+	u16 x;
+	/* Test on DMA Stream Transfer Complete interrupt */
+	if (DMA_GetITStatus(DMA2_Stream1, DMA_IT_TCIF1))
+	{
+
+		/* Clear DMA Stream Transfer Complete interrupt pending bit */
+		DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
+
+		// NVIC_EnableIRQ (MODBUS_USART_IRQN);
+
+	}
+
+	/* Test on DMA Stream Half Transfer interrupt */
+	if (DMA_GetITStatus(DMA2_Stream1, DMA_IT_HTIF1))
+	{
+
+		/* Clear DMA Stream Half Transfer interrupt pending bit */
+		DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_HTIF1);
+
+		NVIC_EnableIRQ(MODBUS_USART_IRQN);
+
+	}
+
 }
 
 /******************************************************************************/

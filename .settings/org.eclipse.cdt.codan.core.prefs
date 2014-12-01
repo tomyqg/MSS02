@@ -1,3 +1,13 @@
+ch.hsr.ifs.cdt.metriculator.classmembers=Warning
+ch.hsr.ifs.cdt.metriculator.classmembers.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},report_problems\=>false,max_per_function\=>20}
+ch.hsr.ifs.cdt.metriculator.efferentcoupling=Warning
+ch.hsr.ifs.cdt.metriculator.efferentcoupling.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},report_problems\=>false,max_per_type\=>4}
+ch.hsr.ifs.cdt.metriculator.lsloc=Warning
+ch.hsr.ifs.cdt.metriculator.lsloc.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},report_problems\=>false,max_per_file\=>100,max_per_function\=>20}
+ch.hsr.ifs.cdt.metriculator.mccabe=Warning
+ch.hsr.ifs.cdt.metriculator.mccabe.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},report_problems\=>false,max_per_function\=>15}
+ch.hsr.ifs.cdt.metriculator.nbparams=Warning
+ch.hsr.ifs.cdt.metriculator.nbparams.params={launchModes\=>{RUN_ON_FULL_BUILD\=>true,RUN_ON_INC_BUILD\=>true,RUN_ON_FILE_OPEN\=>false,RUN_ON_FILE_SAVE\=>false,RUN_AS_YOU_TYPE\=>true,RUN_ON_DEMAND\=>true},report_problems\=>false,max_per_function\=>4}
 eclipse.preferences.version=1
 inEditor=false
 org.eclipse.cdt.codan.checkers.errnoreturn=Warning
