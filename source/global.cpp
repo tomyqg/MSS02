@@ -8,7 +8,7 @@
 
 #include <global.h>
 #include "math.h"
-
+extern u8 uart_buffer[UART_BUFFER_SIZE]; // uart temporary buffer
 global::global ()
 {
   // TODO Auto-generated constructor stub
@@ -96,8 +96,58 @@ global::init (void)
       break;
     }
 
-  initModbusTimer ();
+ // initModbusTimer ();
   initModbusUsart ();
+  
+   DMA_InitTypeDef  DMA_InitStructure;
+ 	     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
+ 	    DMA_DeInit(DMA2_Stream1);
+
+ 	    DMA_InitStructure.DMA_Channel = DMA_Channel_5;
+ 	    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory; // Receive
+ 	    DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)uart_buffer;
+ 	    DMA_InitStructure.DMA_BufferSize = UART_BUFFER_SIZE;
+ 	    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) (&(USART6->DR));
+ 	    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+ 	    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+ 	    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+ 	    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+ 	    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular; //
+ 	    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+ 	    DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
+ 	    DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
+ 	    DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+ 	    DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+
+ 	    DMA_Init(DMA2_Stream1, &DMA_InitStructure);
+
+ 	    /* Enable the USART Rx DMA request */
+ 	    USART_DMACmd(USART6, USART_DMAReq_Rx, ENABLE);
+
+ 	    /* Enable DMA Stream Half Transfer and Transfer Complete interrupt */
+ 	    DMA_ITConfig(DMA2_Stream1, DMA_IT_TC, ENABLE);
+ 	    DMA_ITConfig(DMA2_Stream1, DMA_IT_HT, ENABLE);
+
+ 	    /* Enable the DMA RX Stream */
+ 	    DMA_Cmd(DMA2_Stream1, ENABLE);
+
+
+
+
+ 	    NVIC_InitTypeDef NVIC_InitStructure;
+
+ 	      /* Configure the Priority Group to 2 bits */
+ 	      NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+ 	      /* Enable the UART4 RX DMA Interrupt */
+ 	      NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream1_IRQn;
+ 	      NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+ 	      NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+ 	      NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 	      NVIC_Init(&NVIC_InitStructure);
+  
+  
+  
   mbs_Slave.configureAddress ((u8) SYS[3].getValue ());
 
 //        initProfibusTimer();
@@ -210,7 +260,7 @@ global::initModbusUsart (void)
   USART_Init_Structure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
   USART_Init (MODBUS_USART, &USART_Init_Structure);
   USART_Cmd (MODBUS_USART, ENABLE);
-  USART_ITConfig (MODBUS_USART, USART_IT_RXNE, ENABLE);
+  USART_ITConfig (MODBUS_USART, USART_IT_IDLE, ENABLE);
 
   NVIC_Init_Structure.NVIC_IRQChannel = MODBUS_USART_IRQN;
   NVIC_Init_Structure.NVIC_IRQChannelPreemptionPriority = 6;
